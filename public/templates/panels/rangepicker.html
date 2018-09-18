@@ -1,0 +1,14 @@
+<md-card class="md-whiteframe-5dp no-margin" md-theme="{{ Config.Theme }}">
+	<md-calendar ng-if="Config.Select == 'start'"
+				ng-model="Config.start" 
+				md-min-date="Config.min" 
+				md-max-date="Config.max" 
+				ng-change="ChangedStart()">
+	</md-calendar>
+	<md-calendar ng-if="Config.Select == 'end'" class="rangepicker"
+				ng-model="Config.end" 
+				md-min-date="Config.min" 
+				md-max-date="Config.max" 
+				ng-change="ChangedEnd()">
+	</md-calendar>
+</md-card>

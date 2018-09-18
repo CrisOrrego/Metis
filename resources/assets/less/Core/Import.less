@@ -1,0 +1,40 @@
+#Dialog_Import{
+
+	.TemplateSec{
+		position: relative;
+		cursor: pointer;
+		margin: 0 !important;
+		width: 50%;
+		outline: none;
+
+		&:hover{
+			.BigButton{
+				opacity: 1;
+
+				md-icon{
+					box-shadow: inset 0 0 0 40px rgb(204, 204, 204);
+				}
+			}
+			
+		}
+	}
+
+	.BigButton{
+
+		opacity: 0.75;
+		.transition();
+
+		md-icon{
+			width: 80px;
+			height: 80px;
+			padding: 15px;
+			border-radius: 50%;
+			margin-bottom: 10px;
+			color: #000000;
+			box-shadow: inset 0 0 0 3px #404040;
+			.transition();
+		}
+		
+	}
+
+}

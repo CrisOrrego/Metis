@@ -1,0 +1,13 @@
+<md-bottom-sheet class="md-grid text-black well" layout="column" md-theme="Snow_White">
+  <md-subheader class="md-subheader-compact lh30" ng-cloak>{{ Config.Title }}</md-subheader>
+  <div ng-cloak>
+    <md-list class="no-padding" flex layout="row" layout-align="start center" layout-wrap>
+      <md-list-item ng-repeat="Item in Config.Items" flex="50" flex-gt-xs="33" flex-gt-sm="20" class="margin-bottom-20">
+          <md-button class="bg-white md-grid-item-content md-whiteframe-2dp border-radius" ng-click="Send(Item)">
+            <md-icon md-font-icon="{{ Item.Icono }}" class="fa-3x"></md-icon>
+            <div class="md-grid-text"> {{ Item.Nombre }} </div>
+          </md-button>
+      </md-list-item>
+    </md-list>
+  </div>
+</md-bottom-sheet>

@@ -1,0 +1,35 @@
+<md-dialog md-theme="{{Config.Theme}}" style="min-width: 400px" aria-label="Basic Dialog">
+	<md-toolbar class="md-short md-Transparent">
+		<div class="md-toolbar-tools">
+			<h2>{{Config.Title}}</h2>
+			<span flex></span>
+			<md-button class="md-icon-button" ng-click="Cancel()" >
+				<md-icon md-svg-icon="md-close" aria-label="a" style="color: currentColor"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+
+	<form name="Basic_Dialog_Form" ng-submit="SendData()">
+	<md-dialog-content flex >
+		<div class="md-dialog-content padding" layout="column">
+
+			<md-input-container layout ng-repeat="Field in Config.Fields">
+				<label>{{ Field.Nombre }}</label>
+				<input ng-model="Field.Value" md-autofocus="$first" ng-required="Field.Required" minlength="{{Field.MinLen}}" maxlength="{{Field.MaxLen}}" ng-class="Field.Class">
+			</md-input-container>
+
+		</div>
+	</md-dialog-content>
+
+	<md-dialog-actions layout>
+
+		<md-button ng-if="Config.HasDelete" ng-click="Delete($event)" class="md-icon-button md-dialog-button-left md-warn" aria-label="Borrar">
+			<md-icon md-font-icon="fa-trash" class="fa-lg"></md-icon>
+		</md-button>
+
+		<span flex></span>
+		<md-button type="submit" class="md-raised md-primary">{{ Config.Confirm.Text }}</md-button>
+	</md-dialog-actions>
+	</form>
+
+</md-dialog>

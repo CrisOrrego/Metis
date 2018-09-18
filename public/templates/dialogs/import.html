@@ -1,0 +1,76 @@
+<md-dialog id="Dialog_Import" md-theme="{{Config.Theme}}" flex="90" class="vh90" aria-label="Import Dialog">
+	<md-toolbar class="md-short md-Transparent">
+		<div class="md-toolbar-tools">
+			<h2>{{ Config.Title }}</h2>
+			<span class="w20"></span>
+			<h2 class="text-clear">{{ Pasos[Config.Paso] }}</h2>
+			<span flex></span>
+			<md-button class="md-icon-button" ng-click="Cancel()" >
+				<md-icon md-svg-icon="img/svg/close.svg" aria-label="{{ Config.Title }}"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+
+	<md-dialog-content flex layout="column">
+
+		<!-- Paso 1 -->
+		<div flex layout ng-show="Config.Paso == 1">
+			<div id="TemplateDown" layout layout-align="center center" md-ink-ripple class="TemplateSec border-right" 
+				ng-click="DownloadPlantilla()">
+				<div class="BigButton" layout="column" layout-align="start center">
+					<md-icon md-svg-icon="img/svg/md-arrow-down.svg"></md-icon>
+					<label>Descargar Plantilla</label>
+				</div>
+			</div>
+			<div id="TemplateUp" layout layout-align="center center" class="TemplateSec"
+				type="file" ngf-select="UploadTemplate($files, $invalidFiles)" ngf-accept="'.xlsx'">
+				<div class="BigButton" layout="column" layout-align="start center">
+					<md-icon md-svg-icon="img/svg/md-arrow-up.svg"></md-icon>
+					<label>Subir Plantilla</label>
+				</div>
+			</div>
+		</div>
+
+		<!-- Paso 2 -->
+		<div flex layout layout-align="center center" ng-show="Config.Paso == 2">
+			<div layout="column" layout-align="center center">
+				<md-progress-circular md-mode="indeterminate" class="md-accent md-hue-2" md-diameter="100"></md-progress-circular>
+				<label>Verificando Información</label>
+			</div>
+		</div>
+
+		<!-- Paso 3 -->
+		<div flex layout layout-align="center center" ng-show="Config.Paso == 3">
+			<div layout="column" layout-align="center center">
+				<md-progress-circular md-mode="indeterminate" class="md-primary" md-diameter="100"></md-progress-circular>
+				<label>Importando</label>
+			</div>
+		</div>
+
+		<!-- Paso 5 -->
+		<div flex layout="column" ng-show="Config.Paso == 5">
+			<md-table-container flex>
+				<table md-table class="md-table-short">
+					<thead md-head>
+						<tr md-row>
+							<th md-column>Fila</th>
+							<th md-column>Error</th>
+						</tr>
+					</thead>
+					<tbody md-body>
+						<tr md-row ng-repeat="Row in Errores" class="md-row-hover">
+							<td md-cell class="md-cell-compress">{{ Row.No }}</td>
+							<td md-cell>{{ Row.Msg }}</td>
+						</tr>
+					</tbody>
+				</table>
+			</md-table-container>
+			<md-dialog-actions layout class="md-whiteframe-3dp">
+				<span class="md-body-2 text-red" flex>Se encontraron {{ Errores.length }} errores, por favor corríjalos e intente nuevamente.</span>
+				<md-button class="md-warn" ng-click="DownloadErrors()">Descargar Errores</md-button>
+			</md-dialog-actions>
+		</div>		
+
+	</md-dialog-content>
+
+</md-dialog>

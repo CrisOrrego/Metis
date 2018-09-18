@@ -1,0 +1,117 @@
+body{
+    background-color: #f1f1f1;
+}
+
+#Home{	
+	background-image: url('../../imgs/home_bg.jpg');
+    background-size: cover;
+}
+
+#MainNav{
+	z-index: 70;
+
+	.md-tab{
+		text-transform: none;
+		font-size: 15px;
+		font-weight: 400;
+		color: rgba(255, 255, 255, 0.6) !important;
+		&.md-active{ 
+			color: white !important; 
+			md-icon{
+				color: white !important; 
+			} 
+		}
+	}
+
+	md-ink-bar {
+		height: 3px;
+	}
+
+}
+
+
+
+.QueryArea{
+    background: #f3fbff !important;
+    padding: 8px 10px !important;
+    border: 1px solid #cbe5f1 !important;
+    border-bottom-width: 4px !important;
+}
+
+.rounded-well{
+	.bg-grey();
+	.border-radius();
+	.overflow();
+	.darkScroll();
+}
+
+.rounded-chip{
+	background: white;
+	border-radius: 5px;
+	height: 30px;
+	line-height: 30px;
+	padding-left: 10px;
+	padding-right: 5px;
+	margin: 5px 5px 0;
+	font-size: 14px;
+}
+
+
+
+
+
+.color-picker{
+	padding: 0 !important;
+	-webkit-appearance: checkbox;
+	margin: 0 !important;
+}
+
+.Section_Card{
+
+	padding: 10px;
+	height: 180px;
+    width: 180px;
+	background-color: rgba(255, 255, 255, 0.75) !important;
+	cursor: pointer;
+	outline: none;
+	border-radius: 15px !important;
+	position: relative;
+	transform: scale(0.95);
+	transition: all 0.3s;
+
+	&:hover{
+		background-color: white !important;
+		transform: scale(1);
+
+		md-icon{
+			font-size: 70px;
+		}
+	}
+
+
+	md-icon{
+		font-size: 60px;
+		line-height: 80px;
+		height: 80px;
+		width: 80px;
+		transition: all 0.4s;
+	}
+
+	span{
+		font-size: 18px;
+		width: 160px;
+		text-align: center;
+		font-weight: 500;
+		color: #6f6f6f;
+		height: 40px;
+		line-height: 18px;
+	}
+
+}
+
+
+
+
+#PQRS{
+	background-color: rgba(220, 220, 220, 0.75);
+}

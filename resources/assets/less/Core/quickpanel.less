@@ -1,0 +1,66 @@
+#QuickPanel{
+
+	background-color: rgba(10, 10, 10, 0.8);
+	width: auto;
+    max-width: none;
+    min-width: 250px;
+
+    #QP_Resize{
+    	width: 350px;
+    	min-width: 250px;
+    }
+
+	md-toolbar{
+		background: none;
+
+		.md-button{
+			opacity: 0.3;
+			margin: 0;
+			transition: opacity 0.3s;
+			&:hover{ opacity: 1; }
+		}
+	}
+
+	md-content{
+		background: none;
+	
+		#QuickPanel_Tabs{
+			md-tabs-canvas {
+    			height: 38px;
+
+    			md-pagination-wrapper {
+    				height: 38px;
+
+    				.md-tab {
+    					padding: 5px 24px;
+    				}
+    			}
+    		}
+
+    		md-tabs-content-wrapper{
+    			top: 38px !important;
+    		}
+		}
+
+	}
+
+	#QP_Include{
+		
+	}
+
+	.QP_Tools{
+		padding: 5px 10px 10px; //Esto se usa para barra sup interna
+	}
+
+	.QP_Card{
+		background: #2F2F2F;
+		padding: 10px;
+		margin: 5px;
+		border-radius: 3px;
+	}
+
+}
+
+#Main > md-backdrop{
+	background-color: rgba(0,0,0,0.3) !important;
+}

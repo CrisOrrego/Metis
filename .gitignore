@@ -1,0 +1,5 @@
+/vendor
+/node_modules
+sftp-config.json
+.DS_Store
+sftp-config-alt.json

@@ -1,0 +1,51 @@
+.Comments{
+
+	.Add_Comment{
+		input{
+			padding: 10px;
+			height: 40px;
+		}
+
+		&.with-shadow{
+			box-shadow: 0 10px 20px -10px #afafaf;
+
+			md-input-container{
+				padding: 0;
+			}
+		}
+	}
+
+	.Comments_List{
+		padding: 3px;
+
+		.Comment{
+			margin: 0 0 5px;
+			padding: 5px;
+			cursor: pointer;
+			transition: background-color 0.3s;
+			border-radius: 5px;
+			outline: none;
+
+			&:hover{ background-color: rgba(0, 105, 92, 0.09); }
+
+			.Avatar{
+				width: 	30px;
+				height: 30px;
+				border-radius: 50px;
+			}
+
+			.Comment_Text{
+				margin: 0 0 0 10px; 
+				text-align: justify;
+				font-size: 0.9em;
+			}
+
+			.Comment_Stamp{
+				margin: 5px 0 0 10px;
+				opacity: 0.5;
+			}
+		}
+	}
+
+}
+

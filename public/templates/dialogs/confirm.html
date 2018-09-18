@@ -1,0 +1,25 @@
+<md-dialog md-theme="{{Config.Theme}}" aria-label="Confirm Dialog" class="w100p mxw500">
+	<md-toolbar class="md-short md-Transparent">
+		<div class="md-toolbar-tools">
+			<h2><b>{{Config.Titulo}}</b></h2>
+			<span flex></span>
+			<md-button class="md-icon-button" ng-click="Cancel()" >
+				<md-icon md-svg-icon="md-close" aria-label="a" style="color: currentColor"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+
+	<md-dialog-content class="padding" flex layout="column">
+		<div class="md-dialog-content" flex layout>
+			<md-icon md-font-icon="{{ Config.Icon }}" class="fa-5x h50 margin-right-20 margin-top-20" ng-if="Config.Icon"></md-icon>
+			<p flex class="no-margin text-justify">{{ Config.Detail }}</p>
+		</div>
+	</md-dialog-content>
+
+	<md-dialog-actions layout>
+		<md-button  class="no-margin" ng-click="Cancel()" ng-if="Config.hasCancel">{{ Config.CancelText }}</md-button>
+		<span flex></span>
+		<md-button ng-repeat="Btn in Config.Buttons" class="" ng-class="Btn.Class" ng-click="Send(Btn.Value)">{{ Btn.Text }}</md-button>
+	</md-dialog-actions>
+
+</md-dialog>

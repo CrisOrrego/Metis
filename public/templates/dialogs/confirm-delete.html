@@ -1,0 +1,26 @@
+<md-dialog md-theme="{{Config.Theme}}" aria-label="Delete Dialog" class="mw500 mh250">
+	<md-toolbar class="md-short md-Transparent">
+		<div class="md-toolbar-tools">
+			<h2><b>{{Config.Title}}</b></h2>
+			<span flex></span>
+			<md-button class="md-icon-button" ng-click="Cancel()" >
+				<md-icon md-svg-icon="md-close" aria-label="a" style="color: currentColor"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+
+	<md-dialog-content flex layout="column">
+		<div class="md-dialog-content" flex layout="column" layout-align="center center">
+			
+			<md-icon md-font-icon="fa-trash" class="fa-5x text-orange h50 margin icon-bigcircle"></md-icon>
+			<span class="">{{ Config.Detail }}</span>
+		</div>
+	</md-dialog-content>
+
+	<md-dialog-actions layout>
+		<md-button  class="no-margin" ng-click="Cancel()">Cancelar</md-button>
+		<span flex></span>
+		<md-button  class="md-raised md-warn" ng-click="Delete()">{{ Config.ConfirmText }}</md-button>
+	</md-dialog-actions>
+
+</md-dialog>

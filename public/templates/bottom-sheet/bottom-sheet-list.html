@@ -1,0 +1,11 @@
+<md-bottom-sheet class="md-list md-has-header">
+  <md-subheader class="md-subheader-compact lh30" ng-cloak>{{ Config.Title }}</md-subheader>
+  <md-list ng-cloak class="no-padding">
+    <md-list-item ng-repeat="Item in Config.Items">
+      <md-button ng-click="Send(Item)">
+        <md-icon md-font-icon="{{ Item.Icono }}" class="fa-2x margin-right-20"></md-icon>
+        <span class="md-inline-list-icon-label">{{ Item.Nombre }}</span>
+      </md-button>
+    </md-list-item>
+  </md-list>
+</md-bottom-sheet>

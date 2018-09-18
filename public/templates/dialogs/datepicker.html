@@ -1,0 +1,12 @@
+<md-card class="demo-menu-example md-whiteframe-4dp no-margin" md-theme="{{ Config.Theme }}">
+	<md-toolbar class="md-short">
+		<div class="md-toolbar-tools" layout>
+			<span flex class="text-center">{{ Config.Titulo }}</span>
+		</div>
+	</md-toolbar>
+	<md-calendar ng-model="Config._date" 
+				 md-min-date="Config._min" 
+				 md-max-date="Config._max" 
+				 ng-change="Changed()">
+	</md-calendar>
+</md-card>

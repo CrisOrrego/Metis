@@ -1,0 +1,53 @@
+<md-dialog md-theme="{{Config.Theme}}" style="min-width: 400px" aria-label="Basic Dialog">
+	<md-toolbar class="md-short md-Transparent">
+		<div class="md-toolbar-tools">
+			<h2>{{Config.Title}}</h2>
+			<span flex></span>
+			<md-button class="md-icon-button" ng-click="Cancel()">
+				<md-icon md-svg-icon="/img/svg/close.svg" aria-label="{{ Config.Title }}"></md-icon>
+			</md-button>
+		</div>
+	</md-toolbar>
+
+	<md-dialog-content flex >
+		<div class="md-dialog-content" layout="column" style="height: 300px;">
+
+		<p ng-show="Shareds.length == 0" class="text-center text-clear md-body">Compartido con todos (por defecto).</p>
+
+			<md-autocomplete
+				md-selected-item="Sel"
+				md-search-text="SearchText"
+				md-selected-item-change="AddShare(_Share)"
+				md-items="_Share in AllShares | filter:SearchText | exclude:Shareds:'nombre' "
+				md-min-length="0"
+				md-no-cache="true"
+				placeholder="Buscar usuarios y grupos">
+					<md-item-template>
+						<span md-highlight-text="SearchText" md-highlight-flags="^i">{{ _Share.nombre }}</span>
+						<span class="md-caption text-clear right">{{_Share.tipo }}</span>
+					</md-item-template>
+					<md-not-found>
+					Sin coincidencias
+					</md-not-found>
+			</md-autocomplete>
+
+			<md-list flex class="md-list-compact" ng-show="Shareds.length > 0">
+				
+				<md-subheader>Compartido con:</md-subheader>
+				<md-list-item ng-repeat="Share in Shareds">
+					<p>{{ Share.nombre }} <span class="md-caption text-clear">{{ Share.tipo }}</span></p>
+					<md-button class="md-secondary md-hover md-icon-button no-margin" ng-click="RemoveShare($index)" aria-label="RemoveShare">
+						<md-icon md-svg-icon="img/svg/md-close.svg"></md-icon>
+					</md-button>
+				</md-list-item>
+			</md-list>
+
+		</div>
+	</md-dialog-content>
+
+	<md-dialog-actions layout>
+		<span flex></span>
+		<md-button ng-click="SendData()" class="md-raised md-accent">{{ Config.Confirm.Text }}</md-button>
+	</md-dialog-actions>
+
+</md-dialog>

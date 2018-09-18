@@ -1,0 +1,77 @@
+{
+	"Table": {
+		"Filtros":  	{ "show": "Filtrar por",		"cant": 1000,	"dupes": true  },
+		"Columnas": 	{ "show": "Columnas",			"cant": 1000,	"dupes": false },
+		"Agrupadores":  { "show": "Agrupadores",		"cant": 0,		"dupes": false },
+		"Valores":  	{ "show": "Valores",			"cant": 0,		"dupes": false },
+		"_default":		{
+			"Filtros": [], "Columnas": [], "Agrupadores": [], "Valores": [], "Op_Filas": 10
+		}
+	},
+	"DataTable": {
+		"Filtros":  	{ "show": "Filtrar por",		"cant": 1000,	"dupes": true  },
+		"Columnas": 	{ "show": "Columnas",			"cant": 1,		"dupes": false },
+		"Agrupadores":  { "show": "Agrupadores",		"cant": 1000,	"dupes": false },
+		"Valores":  	{ "show": "Valores",			"cant": 1000,	"dupes": true, "op_total": true },
+		"_default":		{
+			"Filtros": [], "Columnas": [], "Agrupadores": [], "Valores": []
+		}
+	},
+	"DataValue": {
+		"Filtros":  	{ "show": "Filtrar por",		"cant": 1000,	"dupes": true  },
+		"Columnas": 	{ "show": "Columnas",			"cant": 0,		"dupes": false },
+		"Agrupadores":  { "show": "Agrupadores",		"cant": 0,		"dupes": false },
+		"Valores":  	{ "show": "Valor",				"cant": 1,		"dupes": false, "op_total": false },
+		"_default":		{
+			"Filtros": [], "Columnas": [], "Agrupadores": [], "Valores": [], "Op_Altura": 300
+		}
+	},
+	"PieChart": {
+		"Filtros":  	{ "show": "Filtrar por",		"cant": 1000,	"dupes": true  },
+		"Columnas": 	{ "show": "Columnas",			"cant": 0,		"dupes": false },
+		"Agrupadores":  { "show": "Agrupador",			"cant": 1,		"dupes": false },
+		"Valores":  	{ "show": "Valor",				"cant": 1,		"dupes": false, "op_total": false },
+		"_default":		{
+			"Filtros": [], "Columnas": [], "Agrupadores": [], "Valores": [], "Op_ShowLegend": true,
+			"Op_Margenes": [0,0,0,0], "Op_Altura": 300, "Op_ShowLabels": true, 
+			"Op_OutsideLabels": true, "Op_SunbeamLabels": false, "Op_LabelType": "keypercent",
+			"Op_Colors": ["#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf","#aec7e8","#ffbb78","#98df8a","#ff9896","#c5b0d5","#c49c94","#f7b6d2","#c7c7c7","#dbdb8d","#9edae5"]
+		}
+	},
+	"ColChart": {
+		"Filtros":  	{ "show": "Filtrar por",		"cant": 1000,	"dupes": true  },
+		"Columnas": 	{ "show": "Columnas (Eje X)",	"cant": 1,		"dupes": false },
+		"Agrupadores":  { "show": "Agrupador",			"cant": 1,		"dupes": false },
+		"Valores":  	{ "show": "Valor",				"cant": 100,	"dupes": true, "op_total": false },
+		"_default":		{
+			"Filtros": [], "Columnas": [], "Agrupadores": [], "Valores": [], "Op_ShowLegend": true,
+			"Op_Margenes": [0,0,0,0], "Op_Altura": 300, "Op_ShowLabels": true,
+			"Op_Apilado": false, "Op_Ver_Controles": true, "Op_Reducir_Etiquetas": true, "Op_Linea_Guia": true,
+			"Op_Colors": ["#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf","#aec7e8","#ffbb78","#98df8a","#ff9896","#c5b0d5","#c49c94","#f7b6d2","#c7c7c7","#dbdb8d","#9edae5"]
+		}
+	},
+	"BarChart": {
+		"Filtros":  	{ "show": "Filtrar por",		"cant": 1000,	"dupes": true  },
+		"Columnas": 	{ "show": "Barras (Eje Y)",		"cant": 1,		"dupes": false },
+		"Agrupadores":  { "show": "Agrupador",			"cant": 1,		"dupes": false },
+		"Valores":  	{ "show": "Valor",				"cant": 100,	"dupes": true, "op_total": false },
+		"_default":		{
+			"Filtros": [], "Columnas": [], "Agrupadores": [], "Valores": [], "Op_ShowLegend": true,
+			"Op_Margenes": [0,0,0,0], "Op_Altura": 300, "Op_ShowLabels": true,
+			"Op_Apilado": true, "Op_Ver_Controles": true,
+			"Op_Colors": ["#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf","#aec7e8","#ffbb78","#98df8a","#ff9896","#c5b0d5","#c49c94","#f7b6d2","#c7c7c7","#dbdb8d","#9edae5"]
+		}
+	},
+	"LineChart": {
+		"Filtros":  	{ "show": "Filtrar por",		"cant": 1000,	"dupes": true  },
+		"Columnas": 	{ "show": "Columnas (Eje X)",	"cant": 1,		"dupes": false },
+		"Agrupadores":  { "show": "Agrupador",			"cant": 1,		"dupes": false },
+		"Valores":  	{ "show": "Valor",				"cant": 100,	"dupes": true, "op_total": false },
+		"_default":		{
+			"Filtros": [], "Columnas": [], "Agrupadores": [], "Valores": [], "Op_ShowLegend": true,
+			"Op_Margenes": [0,0,0,0], "Op_Altura": 300, "Op_ShowLabels": true,
+			"Op_Linea_Guia": true, "Op_Grosor_Linea": 2,
+			"Op_Colors": ["#1f77b4","#ff7f0e","#2ca02c","#d62728","#9467bd","#8c564b","#e377c2","#7f7f7f","#bcbd22","#17becf","#aec7e8","#ffbb78","#98df8a","#ff9896","#c5b0d5","#c49c94","#f7b6d2","#c7c7c7","#dbdb8d","#9edae5"]
+		}
+	}
+}

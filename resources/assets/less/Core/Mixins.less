@@ -1,0 +1,69 @@
+/*
+|--------------------------------------------------------------------------
+| Position
+|--------------------------------------------------------------------------
+*/
+.positionFull(@position: absolute, @t: 0, @r: 0, @b: 0, @l: 0){
+	position: @position;
+	top: @t; right: @r; bottom: @b; left: @l;
+}
+
+.WidthHeight(@Width: 100%, @Height: 100%){
+	width: @Width;
+	height: @Height;
+}
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Flexbox
+|--------------------------------------------------------------------------
+*/
+.Aligner(@align: center, @justify: center){
+  display: flex;
+  flex-wrap: wrap;
+  align-items: @align;
+  justify-content: @justify;
+}
+.Aligner{ .Aligner() }
+
+
+
+/*
+|--------------------------------------------------------------------------
+| Animations
+|--------------------------------------------------------------------------
+*/
+.Animation(...) {
+	-webkit-animation: @arguments;
+	animation: @arguments;
+	-webkit-animation-fill-mode: forwards;
+	animation-fill-mode: forwards;
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| Helpers
+|--------------------------------------------------------------------------
+*/
+.noMargin{
+	margin: 0 !important;
+}
+
+.wrapping-pad{
+	padding: 10px;
+}
+
+.FullHeight{
+	height: 100%;
+}
+
+.FullWidth{
+	width: 100%;
+}
+
+.Hidden{
+	display: none;
+}
