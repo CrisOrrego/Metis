@@ -1,6 +1,6 @@
 angular.module('appFunctions', [])
-.factory('appFunctions', [ '$rootScope', '$http', '$mdDialog', '$mdSidenav', '$mdToast', '$q', '$state', '$location', '$filter', 
-	function($rootScope, $http, $mdDialog, $mdSidenav, $mdToast, $q, $state, $location, $filter){
+.factory('appFunctions', [ '$rootScope', '$http', '$mdDialog', '$mdSidenav', '$mdToast', '$q', '$state', '$location', '$filter', '$timeout',
+	function($rootScope, $http, $mdDialog, $mdSidenav, $mdToast, $q, $state, $location, $filter, $timeout){
 
 		var Rs = $rootScope;
 
@@ -19,7 +19,12 @@ angular.module('appFunctions', [])
 			};
 
 		};
-		Rs.navTo = function(Dir, params){ $state.go(Dir, params); };
+		Rs.navTo = function(Dir, params){ 
+			$timeout(()=> {
+				$state.go(Dir, params);
+			}, 300);
+			
+		};
 		Rs.Refresh = function() { $state.go($state.current, $state.params, {reload: true}); };
 
 
