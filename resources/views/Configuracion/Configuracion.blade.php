@@ -1,4 +1,4 @@
-<div flex layout ng-controller="ConfiguracionCtrl">
+<div flex layout ngs-controller="ConfiguracionCtrl">
 
 	<div class="rounded-well w230 margin">
 		

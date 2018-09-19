@@ -8227,6 +8227,7 @@ button {
   opacity: 0;
   cursor: pointer;
   transition: all 0.3s;
+  transition: all 0.3s linear;
 }
 .has-hidden-close:hover .btn-close-red {
   opacity: 0.5;
@@ -8410,6 +8411,7 @@ md-progress-circular.md-state-ok path {
   padding: 0;
   margin: 0;
   transition: all 0.3s;
+  transition: all 0.3s linear;
   /*
 	.md-icon-button {
 		margin: 0;
@@ -9261,6 +9263,19 @@ body {
   background-image: url('../../imgs/home_bg.jpg');
   background-size: cover;
 }
+#Section {
+  position: absolute;
+  top: 40px;
+  bottom: 0px;
+  left: 0;
+  right: 0;
+}
+#Section.ng-enter {
+  animation: 0.3s In_Fade  linear;
+}
+#Section.ng-leave {
+  animation: 0.3s Out_Fade linear;
+}
 #MainNav {
   z-index: 70;
 }
@@ -9329,22 +9344,27 @@ body {
 }
 .Section_Card {
   padding: 10px;
-  height: 180px;
-  width: 180px;
-  background-color: rgba(255, 255, 255, 0.75) !important;
+  height: 150px;
+  width: 200px;
+  background-color: rgba(0, 0, 0, 0.75) !important;
   cursor: pointer;
   outline: none;
   border-radius: 15px !important;
   position: relative;
   transform: scale(0.95);
   transition: all 0.3s;
+  color: white !important;
 }
 .Section_Card:hover {
-  background-color: white !important;
+  background-color: #2d2d2d !important;
   transform: scale(1);
 }
 .Section_Card:hover md-icon {
-  font-size: 70px;
+  font-size: 65px;
+  color: white;
+}
+.Section_Card:hover span {
+  color: white;
 }
 .Section_Card md-icon {
   font-size: 60px;
@@ -9352,16 +9372,183 @@ body {
   height: 80px;
   width: 80px;
   transition: all 0.4s;
+  color: #9a9a9a;
 }
 .Section_Card span {
   font-size: 18px;
-  width: 160px;
   text-align: center;
   font-weight: 500;
   color: #6f6f6f;
   height: 40px;
-  line-height: 18px;
+  line-height: 20px;
+  color: #afafaf;
 }
 #PQRS {
   background-color: rgba(220, 220, 220, 0.75);
+}
+@keyframes In_Fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes Out_Fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+@keyframes In_FadeScale {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes Out_FadeScale {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+@keyframes In_Scale {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes In_Scale_Down {
+  from {
+    transform: scale(1.1);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes Out_Scale {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(0);
+  }
+}
+@keyframes In_Down {
+  from {
+    transform: translateY(-50px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@keyframes Out_Up {
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(-50px);
+  }
+}
+@keyframes In_FadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes In_FadeLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes In_FadeRight {
+  from {
+    opacity: 0;
+    transform: translateX(50px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+@keyframes Out_FadeDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(50px);
+  }
+}
+@keyframes Out_FadeLeft {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-50px);
+  }
+}
+.Animation_In_Scale {
+  animation: In_Scale 1s;
+}
+/**
+ *  Angular Animate
+ */
+.slide-animate.ng-enter,
+.slide-animate.ng-leave {
+  transition: all cubic-bezier(0.25, 0.46, 0.45, 0.94) 0.5s;
+  /*position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  display:block;
+  padding:10px;*/
+}
+.slide-animate.ng-enter {
+  top: -5000000px;
+  opacity: 0;
+}
+.slide-animate.ng-enter.ng-enter-active {
+  top: 0;
+}
+.slide-animate.ng-leave {
+  top: 0;
+}
+.slide-animate.ng-leave.ng-leave-active {
+  top: 50000px;
+}
+/**
+ * On Hover
+ */
+.on-hover .fade-in-this {
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.on-hover:hover .fade-in-this {
+  opacity: 1;
 }

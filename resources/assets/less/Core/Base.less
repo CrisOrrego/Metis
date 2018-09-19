@@ -7,6 +7,18 @@ body{
     background-size: cover;
 }
 
+#Section{
+	//transition: all linear 10s;
+	position: absolute;
+    top: 40px;
+    bottom: 0px;
+    left: 0;
+    right: 0;
+
+	&.ng-enter{ animation: 0.3s In_Fade  linear; }
+	&.ng-leave{ animation: 0.3s Out_Fade linear; }
+}
+
 #MainNav{
 	z-index: 70;
 
@@ -69,22 +81,28 @@ body{
 .Section_Card{
 
 	padding: 10px;
-	height: 180px;
-    width: 180px;
-	background-color: rgba(255, 255, 255, 0.75) !important;
-	cursor: pointer;
-	outline: none;
-	border-radius: 15px !important;
-	position: relative;
-	transform: scale(0.95);
-	transition: all 0.3s;
+	height: 150px;
+    width: 200px;
+	background-color: rgba(0, 0, 0, 0.75) !important;
+    cursor: pointer;
+    outline: none;
+    border-radius: 15px !important;
+    position: relative;
+    transform: scale(0.95);
+    transition: all 0.3s;
+    color: white !important;
 
 	&:hover{
-		background-color: white !important;
+		background-color: #2d2d2d !important;
 		transform: scale(1);
 
 		md-icon{
-			font-size: 70px;
+			font-size: 65px;
+			color: white;
+		}
+
+		span{
+			color: white;
 		}
 	}
 
@@ -95,16 +113,17 @@ body{
 		height: 80px;
 		width: 80px;
 		transition: all 0.4s;
+		color: #9a9a9a;
 	}
 
 	span{
 		font-size: 18px;
-		width: 160px;
 		text-align: center;
 		font-weight: 500;
 		color: #6f6f6f;
 		height: 40px;
-		line-height: 18px;
+		line-height: 20px;
+		color: #afafaf;
 	}
 
 }

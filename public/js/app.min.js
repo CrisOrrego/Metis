@@ -323,44 +323,6 @@ angular.module('BottomSheetCtrl', [])
 		}
 	}
 ]);
-angular.module('ConfirmCtrl', [])
-.controller(   'ConfirmCtrl', ['$scope', 'Config', '$mdDialog', 
-	function ($scope, Config, $mdDialog) {
-
-		var Ctrl = $scope;
-
-		Ctrl.Config = Config;
-
-		Ctrl.Cancel = function(){
-			$mdDialog.cancel();
-		}
-
-		Ctrl.Send = function(val){
-			$mdDialog.hide(val);
-		}
-		
-	}
-
-]);
-angular.module('ConfirmDeleteCtrl', [])
-.controller(   'ConfirmDeleteCtrl', ['$scope', 'Config', '$mdDialog', 
-	function ($scope, Config, $mdDialog) {
-
-		var Ctrl = $scope;
-
-		Ctrl.Config = Config;
-
-		Ctrl.Cancel = function(){
-			$mdDialog.hide(false);
-		}
-
-		Ctrl.Delete = function(){
-			$mdDialog.hide(true);
-		}
-		
-	}
-
-]);
 angular.module('CRUDDialogCtrl', [])
 .controller('CRUDDialogCtrl', ['$rootScope', '$scope', '$mdDialog', 'ops', 'config', 'columns', 'Obj', 'rows', 
 	function($rootScope, $scope, $mdDialog, ops, config, columns, Obj, rows) {
@@ -432,6 +394,44 @@ angular.module('CRUDDialogCtrl', [])
 		//Ctrl.fields = angular.copy
 
 	}
+]);
+angular.module('ConfirmCtrl', [])
+.controller(   'ConfirmCtrl', ['$scope', 'Config', '$mdDialog', 
+	function ($scope, Config, $mdDialog) {
+
+		var Ctrl = $scope;
+
+		Ctrl.Config = Config;
+
+		Ctrl.Cancel = function(){
+			$mdDialog.cancel();
+		}
+
+		Ctrl.Send = function(val){
+			$mdDialog.hide(val);
+		}
+		
+	}
+
+]);
+angular.module('ConfirmDeleteCtrl', [])
+.controller(   'ConfirmDeleteCtrl', ['$scope', 'Config', '$mdDialog', 
+	function ($scope, Config, $mdDialog) {
+
+		var Ctrl = $scope;
+
+		Ctrl.Config = Config;
+
+		Ctrl.Cancel = function(){
+			$mdDialog.hide(false);
+		}
+
+		Ctrl.Delete = function(){
+			$mdDialog.hide(true);
+		}
+		
+	}
+
 ]);
 angular.module('Core__ImageEditor_DialogCtrl', [])
 .controller(   'Core__ImageEditor_DialogCtrl', ['$scope', '$rootScope', '$mdDialog', '$mdToast', '$timeout', '$http', 'Upload', 'Config', 
@@ -719,6 +719,8 @@ angular.module('PQRS__PQRSCtrl', [])
 			Nombre: '',
 			Nro_Credito: '',
 			Descripcion: '',
+
+			limit: 100
 		};
 
 		Ctrl.Subtipificaciones = [
@@ -745,16 +747,19 @@ angular.module('PQRS__PQRSCtrl', [])
 		//Obtener
 		Ctrl.Headers = false;
 		Ctrl.getRows = () => {
-			Ctrl.Rows = [];
+			Ctrl.Rows = false;
+			Ctrl.loading = true;
 			Rs.http('api/PQRS', { 'filters' : Ctrl.filters }, Ctrl, 'Rows').then(() => {
 				if(!Ctrl.Headers && Ctrl.Rows.length > 0){
 					Ctrl.Headers = Object.keys(Ctrl.Rows[0]);
 				};
+
+				Ctrl.loading  = false;
 			});
 		};
 
 
-		Ctrl.getRows();
+		//Ctrl.getRows();
 
 		Ctrl.resetFilters = () => {
 			Ctrl.filters = angular.copy(DefFilters);
@@ -1213,6 +1218,7 @@ angular.module('App', [
 	'ngStorage',
 	'ngMaterial',
 	'ngSanitize',
+	'ngAnimate',
 
 	'md.data.table',
 	//'ngFileUpload',

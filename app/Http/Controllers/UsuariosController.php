@@ -70,8 +70,9 @@ class UsuariosController extends Controller
     public function getSecciones($Usuario)
     {
         $Secciones = [
-            'PQRS'         =>  [ 'No' => 0, 'Icono' => 'fa-commenting',    'Nombre' => 'Reporte de PQRS'  ],
-            'InformeBI'    =>  [ 'No' => 1, 'Icono' => 'fa-area-chart',    'Nombre' => 'Informe Power BI'  ],
+            'PQRS'          =>  [ 'No' => 0, 'Icono' => 'fa-commenting',    'Nombre' => 'Reporte de PQRS'  ],
+            'InformeBI'     =>  [ 'No' => 1, 'Icono' => 'fa-area-chart',    'Nombre' => 'Informe Power BI'  ],
+            'Configuracion' =>  [ 'No' => 2, 'Icono' => 'fa-cog',           'Nombre' => 'Configuración'  ],
         ];
 
         return $Secciones;

@@ -7,7 +7,7 @@
 
 		<md-subheader class="md-primary md-subheader-compact">Filtros</md-subheader>
 
-		<md-content flex layout="column" class="overflow-y darkScroll padding fixInputContainers">
+		<md-content flex layout="column" class="overflow-y darkScroll padding-but-bottom fixInputContainers">
 
 			<span class="md-label margin-bottom-5">Fecha Radicado</span>
 			<div class="margin-bottom" layout>
@@ -82,10 +82,17 @@
 				<input ng-model="filters.Descripcion" placeholder="Descripción">
 			</md-input-container>
 
+
+			<div class="h50"></div>
+			<md-subheader class="md-primary md-subheader-compact" style="margin-left:-8px">Otras Opciones</md-subheader>
+			<md-input-container>
+				<input ng-model="filters.limit" placeholder="Limite de Resultados" min=1 type=number>
+			</md-input-container>
+
 			
 
 
-			<div class="h50"></div>
+			<div class="h20"></div>
 			<md-button ng-click="resetFilters()" class="no-margin md-warn">Borrar Filtros</md-button>
 
 		</md-content>
@@ -96,11 +103,11 @@
 
 	  </md-sidenav>
 
-		<div flex layout=column class="margin">
+		<div flex layout=column class="margin" ng-show="Rows">
 
 			<div layout class="margin-bottom-5">
 				<span class="md-title lh30 margin-left-5" flex>PQRS</span>
-				<md-button class="md-primary md-raised no-margin" ng-csv="Rows"  csv-header="Headers" filename="PQRS.csv" field-separator=";"
+				<md-button class="md-primary md-raised no-margin h30 mh30 lh30" ng-csv="Rows"  csv-header="Headers" filename="PQRS.csv" field-separator=";"
 					ng-show="Rows.length > 0">
 					<md-icon md-font-icon="fa-download fa-fw margin-right-5"></md-icon>
 					Descargar ({{ Rows.length }})
@@ -109,8 +116,8 @@
 
 			<md-card flex class="border-radius no-margin" layout=column>
 
-				<md-table-container flex class="border-bottom">
-					<table md-table class="md-table-short">
+				<md-table-container flex class="">
+					<table md-table class="md-table-short border-bottom">
 						<thead md-head md-order="orderBy">
 							<tr md-row>
 								<th md-column ng-repeat="(k,V) in Rows[0]">{{ k }}</th>
@@ -127,6 +134,11 @@
 				
 			</md-card>
 
+		</div>
+
+		<div flex layout layout-align="center center" ng-show="loading">
+			<md-progress-circular md-mode="indeterminate"></md-progress-circular>
+			<h3 class="md-display-2 margin-left-20">Cargando...</h3>
 		</div>
 
 		<pre hide>{{ filters | json }}</pre>

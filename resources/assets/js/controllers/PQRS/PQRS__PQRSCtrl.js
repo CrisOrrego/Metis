@@ -27,6 +27,8 @@ angular.module('PQRS__PQRSCtrl', [])
 			Nombre: '',
 			Nro_Credito: '',
 			Descripcion: '',
+
+			limit: 100
 		};
 
 		Ctrl.Subtipificaciones = [
@@ -53,16 +55,19 @@ angular.module('PQRS__PQRSCtrl', [])
 		//Obtener
 		Ctrl.Headers = false;
 		Ctrl.getRows = () => {
-			Ctrl.Rows = [];
+			Ctrl.Rows = false;
+			Ctrl.loading = true;
 			Rs.http('api/PQRS', { 'filters' : Ctrl.filters }, Ctrl, 'Rows').then(() => {
 				if(!Ctrl.Headers && Ctrl.Rows.length > 0){
 					Ctrl.Headers = Object.keys(Ctrl.Rows[0]);
 				};
+
+				Ctrl.loading  = false;
 			});
 		};
 
 
-		Ctrl.getRows();
+		//Ctrl.getRows();
 
 		Ctrl.resetFilters = () => {
 			Ctrl.filters = angular.copy(DefFilters);

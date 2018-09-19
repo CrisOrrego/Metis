@@ -4,6 +4,7 @@ angular.module('App', [
 	'ngStorage',
 	'ngMaterial',
 	'ngSanitize',
+	'ngAnimate',
 
 	'md.data.table',
 	//'ngFileUpload',
