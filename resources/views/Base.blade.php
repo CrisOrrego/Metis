@@ -9,8 +9,8 @@
 		<meta name="mobile-web-app-capable" content="yes">
 		<link rel="icon" type="image/png" href="/imgs/Icon.png" />
 
-		<link   rel="stylesheet"                 href="/css/libs.min.css?20180612" />
-		<link   rel="stylesheet"                 href="<%  elixir('css/all.min.css') %>" />
+		<link   rel="stylesheet"    href="/css/libs.min.css?20180612" />
+		<link   rel="stylesheet"    href="<%  elixir('css/all.min.css') %>" />
 
 		<script defer type="application/javascript" src="/js/libs.min.js?20180612"></script>
 		<script defer type="application/javascript" src="<%  elixir('js/app.min.js') %>"></script>
