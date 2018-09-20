@@ -9356,7 +9356,7 @@ body {
   color: white !important;
 }
 .Section_Card:hover {
-  background-color: #2d2d2d !important;
+  background-color: #0d0d0d !important;
   transform: scale(1);
 }
 .Section_Card:hover md-icon {
@@ -9385,6 +9385,9 @@ body {
 }
 #PQRS {
   background-color: rgba(220, 220, 220, 0.75);
+}
+.PowerBI_Report {
+  margin-bottom: -40px !important;
 }
 @keyframes In_Fade {
   from {

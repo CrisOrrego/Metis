@@ -114,6 +114,173 @@ angular.module('SiteCtrl', [])
 
 	}
 ]);
+angular.module('ConfiguracionCtrl', [])
+.controller('ConfiguracionCtrl', ['$scope', '$rootScope', '$http', '$mdDialog',
+	function($scope, $rootScope, $http, $mdDialog) {
+
+		console.info('ConfiguracionCtrl');
+		var Ctrl = $scope;
+		var Rs = $rootScope;
+	
+		Ctrl.Subsecciones = [
+			{ Icon: 'fa-home', 		Titulo: 'General',  url: 'General' },
+			{ Icon: 'fa-id-card', 	Titulo: 'Permisos', url: 'Permisos' },
+			{ Icon: 'fa-user', 		Titulo: 'Usuarios', url: 'Usuarios' },
+		];
+
+		if(Rs.State.route.length < 4){
+			Rs.navTo('Home.Section.Subsection', { subsection: Ctrl.Subsecciones[0].url })
+		};
+
+		//Generales
+		Ctrl.saveOpts = function(){
+			Rs.http('/api/Main/save-opts', { Opts: Rs.Opts });
+		};
+
+
+
+	}
+]);
+angular.module('Configuracion__PermisosCtrl', [])
+.controller('Configuracion__PermisosCtrl', ['$scope', '$rootScope', '$http', '$mdDialog', '$injector',
+	function($scope, $rootScope, $http, $mdDialog, $injector) {
+
+		console.info('Configuracion__PermisosCtrl');
+		var Ctrl = $scope;
+		var Rs = $rootScope;
+		
+		Ctrl.Perfil = null;
+
+		Ctrl.PerfilesCRUD = $injector.get('CRUD').config({   base_url: '/api/Usuarios/perfiles' });
+		Ctrl.PerfilesCRUD.get().then(() => {
+			//Ctrl.openPerfil(Ctrl.PerfilesCRUD.rows[0]);
+		});
+
+		Rs.http('/api/Cubos/servidores-cubos-paneles', {}, Ctrl, 'Servidores');
+		Rs.http('/api/Informe/all', {}, Ctrl, 'Informes');
+
+		var DefConfig = {
+			'access_cubos': 			'N',
+			'access_cubos_list': 		[],
+			'level_cubos':				0,
+			'level_paneles':			0,
+			'level_informes':			0,
+			'level_configuracion': 		0,
+			'access_informes': 			'N',
+			'access_informes_list':     [],
+		};
+
+		Ctrl.addPerfil = function(config){
+			angular.extend(config, {
+				title: 'Agregar Perfil',
+			});
+			Ctrl.PerfilesCRUD.dialog({}, config).then(function(newElm){
+				if(!newElm) return false;
+				Ctrl.PerfilesCRUD.add(newElm);
+			});
+		};
+
+		Ctrl.openPerfil = function(P) {
+			Ctrl.Perfil = P;
+			Ctrl.Perfil.Config = angular.extend(DefConfig, Ctrl.Perfil.Config);
+
+			//Marcar los Cubos
+			if(Ctrl.Perfil.Config.access_cubos == 'A'){
+				angular.forEach(Ctrl.Servidores, S => {
+					angular.forEach(S.cubos, C => {
+						if(Rs.inArray(C.id, Ctrl.Perfil.Config.access_cubos_list)) C.access = true;
+					});
+				});
+			};
+
+			//Marcar los Informes
+			if(Ctrl.Perfil.Config.access_informes == 'A'){
+				angular.forEach(Ctrl.Informes, I => {
+					if(Rs.inArray(I.id, Ctrl.Perfil.Config.access_informes_list)) I.access = true;
+				});
+			};
+
+		};
+
+		Ctrl.savePerfil = function(){
+			
+			//Detalle de Cubos
+			Ctrl.Perfil.Config.access_cubos_list = [];
+			if(Ctrl.Perfil.Config.access_cubos == 'A'){
+				angular.forEach(Ctrl.Servidores, S => {
+					angular.forEach(S.cubos, C => {
+						if(C.access) Ctrl.Perfil.Config.access_cubos_list.push(C.id);
+					});
+				});
+			};
+
+			//Detalle de Informes
+			Ctrl.Perfil.Config.access_informes_list = [];
+			if(Ctrl.Perfil.Config.access_informes == 'A'){
+				angular.forEach(Ctrl.Informes, I => {
+					if(I.access) Ctrl.Perfil.Config.access_informes_list.push(I.id);
+				});
+			};
+
+			Ctrl.PerfilesCRUD.update(Ctrl.Perfil).then(() => {
+				Rs.showToast('Perfil Actualizado', 'Success');
+			});
+		};
+
+		Ctrl.AccessOptions = {
+			'T': ['Todos','Todas'],
+			'A': ['Algunos','Algunas'],
+			'N': ['Ninguno','Ninguna'],
+		};
+
+		Ctrl.AccessLevels = [
+			{ Level: 0, Desc: 'Sin Acceso' },
+			{ Level: 1, Desc: 'Puede Ver' },
+			//{ Level: 2, Desc: 'Puede Crear' },
+			{ Level: 3, Desc: 'Puede Editar' }
+		];
+	}
+]);
+angular.module('Configuracion__UsuariosCtrl', [])
+.controller('Configuracion__UsuariosCtrl', ['$scope', '$rootScope', '$http', '$mdDialog', '$injector',
+	function($scope, $rootScope, $http, $mdDialog, $injector) {
+
+		console.info('Configuracion__UsuariosCtrl');
+		var Ctrl = $scope;
+		var Rs = $rootScope;
+	
+		Ctrl.UsuariosCRUD = $injector.get('CRUD').config({   base_url: '/api/Usuarios/usuarios' });
+		Ctrl.UsuariosCRUD.get();
+
+
+		Ctrl.addUsuario = function(config){
+			angular.extend(config, {
+				title: 'Agregar Usuario',
+			});
+			Ctrl.UsuariosCRUD.dialog({}, config).then(function(newElm){
+				if(!newElm) return false;
+				Ctrl.UsuariosCRUD.add(newElm);
+			});
+		};
+
+		Ctrl.editUsuario = function(U, config) {
+			angular.extend(config, {
+				title: 'Editar Usuario',
+				delete_title: '¿Eliminar Usuario: '+U.Nombre+'?',
+			});
+
+			Ctrl.UsuariosCRUD.dialog(U, config).then(function(updatedElm){
+				if(!updatedElm) return false;
+				if(updatedElm == 'DELETE'){ 
+					Ctrl.UsuariosCRUD.delete(U); 
+					return false;
+				}
+				Ctrl.UsuariosCRUD.update(updatedElm);
+			});
+		};
+
+	}
+]);
 angular.module('BasicDialogCtrl', [])
 .controller(   'BasicDialogCtrl', ['$scope', 'Config', '$mdDialog', 
 	function ($scope, Config, $mdDialog) {
@@ -155,44 +322,6 @@ angular.module('BottomSheetCtrl', [])
 			$mdBottomSheet.hide(Item);
 		}
 	}
-]);
-angular.module('ConfirmCtrl', [])
-.controller(   'ConfirmCtrl', ['$scope', 'Config', '$mdDialog', 
-	function ($scope, Config, $mdDialog) {
-
-		var Ctrl = $scope;
-
-		Ctrl.Config = Config;
-
-		Ctrl.Cancel = function(){
-			$mdDialog.cancel();
-		}
-
-		Ctrl.Send = function(val){
-			$mdDialog.hide(val);
-		}
-		
-	}
-
-]);
-angular.module('ConfirmDeleteCtrl', [])
-.controller(   'ConfirmDeleteCtrl', ['$scope', 'Config', '$mdDialog', 
-	function ($scope, Config, $mdDialog) {
-
-		var Ctrl = $scope;
-
-		Ctrl.Config = Config;
-
-		Ctrl.Cancel = function(){
-			$mdDialog.hide(false);
-		}
-
-		Ctrl.Delete = function(){
-			$mdDialog.hide(true);
-		}
-		
-	}
-
 ]);
 angular.module('CRUDDialogCtrl', [])
 .controller('CRUDDialogCtrl', ['$rootScope', '$scope', '$mdDialog', 'ops', 'config', 'columns', 'Obj', 'rows', 
@@ -265,6 +394,44 @@ angular.module('CRUDDialogCtrl', [])
 		//Ctrl.fields = angular.copy
 
 	}
+]);
+angular.module('ConfirmCtrl', [])
+.controller(   'ConfirmCtrl', ['$scope', 'Config', '$mdDialog', 
+	function ($scope, Config, $mdDialog) {
+
+		var Ctrl = $scope;
+
+		Ctrl.Config = Config;
+
+		Ctrl.Cancel = function(){
+			$mdDialog.cancel();
+		}
+
+		Ctrl.Send = function(val){
+			$mdDialog.hide(val);
+		}
+		
+	}
+
+]);
+angular.module('ConfirmDeleteCtrl', [])
+.controller(   'ConfirmDeleteCtrl', ['$scope', 'Config', '$mdDialog', 
+	function ($scope, Config, $mdDialog) {
+
+		var Ctrl = $scope;
+
+		Ctrl.Config = Config;
+
+		Ctrl.Cancel = function(){
+			$mdDialog.hide(false);
+		}
+
+		Ctrl.Delete = function(){
+			$mdDialog.hide(true);
+		}
+		
+	}
+
 ]);
 angular.module('Core__ImageEditor_DialogCtrl', [])
 .controller(   'Core__ImageEditor_DialogCtrl', ['$scope', '$rootScope', '$mdDialog', '$mdToast', '$timeout', '$http', 'Upload', 'Config', 
@@ -598,173 +765,6 @@ angular.module('PQRS__PQRSCtrl', [])
 			Ctrl.filters = angular.copy(DefFilters);
 		};
 		Ctrl.resetFilters();
-
-	}
-]);
-angular.module('ConfiguracionCtrl', [])
-.controller('ConfiguracionCtrl', ['$scope', '$rootScope', '$http', '$mdDialog',
-	function($scope, $rootScope, $http, $mdDialog) {
-
-		console.info('ConfiguracionCtrl');
-		var Ctrl = $scope;
-		var Rs = $rootScope;
-	
-		Ctrl.Subsecciones = [
-			{ Icon: 'fa-home', 		Titulo: 'General',  url: 'General' },
-			{ Icon: 'fa-id-card', 	Titulo: 'Permisos', url: 'Permisos' },
-			{ Icon: 'fa-user', 		Titulo: 'Usuarios', url: 'Usuarios' },
-		];
-
-		if(Rs.State.route.length < 4){
-			Rs.navTo('Home.Section.Subsection', { subsection: Ctrl.Subsecciones[0].url })
-		};
-
-		//Generales
-		Ctrl.saveOpts = function(){
-			Rs.http('/api/Main/save-opts', { Opts: Rs.Opts });
-		};
-
-
-
-	}
-]);
-angular.module('Configuracion__PermisosCtrl', [])
-.controller('Configuracion__PermisosCtrl', ['$scope', '$rootScope', '$http', '$mdDialog', '$injector',
-	function($scope, $rootScope, $http, $mdDialog, $injector) {
-
-		console.info('Configuracion__PermisosCtrl');
-		var Ctrl = $scope;
-		var Rs = $rootScope;
-		
-		Ctrl.Perfil = null;
-
-		Ctrl.PerfilesCRUD = $injector.get('CRUD').config({   base_url: '/api/Usuarios/perfiles' });
-		Ctrl.PerfilesCRUD.get().then(() => {
-			//Ctrl.openPerfil(Ctrl.PerfilesCRUD.rows[0]);
-		});
-
-		Rs.http('/api/Cubos/servidores-cubos-paneles', {}, Ctrl, 'Servidores');
-		Rs.http('/api/Informe/all', {}, Ctrl, 'Informes');
-
-		var DefConfig = {
-			'access_cubos': 			'N',
-			'access_cubos_list': 		[],
-			'level_cubos':				0,
-			'level_paneles':			0,
-			'level_informes':			0,
-			'level_configuracion': 		0,
-			'access_informes': 			'N',
-			'access_informes_list':     [],
-		};
-
-		Ctrl.addPerfil = function(config){
-			angular.extend(config, {
-				title: 'Agregar Perfil',
-			});
-			Ctrl.PerfilesCRUD.dialog({}, config).then(function(newElm){
-				if(!newElm) return false;
-				Ctrl.PerfilesCRUD.add(newElm);
-			});
-		};
-
-		Ctrl.openPerfil = function(P) {
-			Ctrl.Perfil = P;
-			Ctrl.Perfil.Config = angular.extend(DefConfig, Ctrl.Perfil.Config);
-
-			//Marcar los Cubos
-			if(Ctrl.Perfil.Config.access_cubos == 'A'){
-				angular.forEach(Ctrl.Servidores, S => {
-					angular.forEach(S.cubos, C => {
-						if(Rs.inArray(C.id, Ctrl.Perfil.Config.access_cubos_list)) C.access = true;
-					});
-				});
-			};
-
-			//Marcar los Informes
-			if(Ctrl.Perfil.Config.access_informes == 'A'){
-				angular.forEach(Ctrl.Informes, I => {
-					if(Rs.inArray(I.id, Ctrl.Perfil.Config.access_informes_list)) I.access = true;
-				});
-			};
-
-		};
-
-		Ctrl.savePerfil = function(){
-			
-			//Detalle de Cubos
-			Ctrl.Perfil.Config.access_cubos_list = [];
-			if(Ctrl.Perfil.Config.access_cubos == 'A'){
-				angular.forEach(Ctrl.Servidores, S => {
-					angular.forEach(S.cubos, C => {
-						if(C.access) Ctrl.Perfil.Config.access_cubos_list.push(C.id);
-					});
-				});
-			};
-
-			//Detalle de Informes
-			Ctrl.Perfil.Config.access_informes_list = [];
-			if(Ctrl.Perfil.Config.access_informes == 'A'){
-				angular.forEach(Ctrl.Informes, I => {
-					if(I.access) Ctrl.Perfil.Config.access_informes_list.push(I.id);
-				});
-			};
-
-			Ctrl.PerfilesCRUD.update(Ctrl.Perfil).then(() => {
-				Rs.showToast('Perfil Actualizado', 'Success');
-			});
-		};
-
-		Ctrl.AccessOptions = {
-			'T': ['Todos','Todas'],
-			'A': ['Algunos','Algunas'],
-			'N': ['Ninguno','Ninguna'],
-		};
-
-		Ctrl.AccessLevels = [
-			{ Level: 0, Desc: 'Sin Acceso' },
-			{ Level: 1, Desc: 'Puede Ver' },
-			//{ Level: 2, Desc: 'Puede Crear' },
-			{ Level: 3, Desc: 'Puede Editar' }
-		];
-	}
-]);
-angular.module('Configuracion__UsuariosCtrl', [])
-.controller('Configuracion__UsuariosCtrl', ['$scope', '$rootScope', '$http', '$mdDialog', '$injector',
-	function($scope, $rootScope, $http, $mdDialog, $injector) {
-
-		console.info('Configuracion__UsuariosCtrl');
-		var Ctrl = $scope;
-		var Rs = $rootScope;
-	
-		Ctrl.UsuariosCRUD = $injector.get('CRUD').config({   base_url: '/api/Usuarios/usuarios' });
-		Ctrl.UsuariosCRUD.get();
-
-
-		Ctrl.addUsuario = function(config){
-			angular.extend(config, {
-				title: 'Agregar Usuario',
-			});
-			Ctrl.UsuariosCRUD.dialog({}, config).then(function(newElm){
-				if(!newElm) return false;
-				Ctrl.UsuariosCRUD.add(newElm);
-			});
-		};
-
-		Ctrl.editUsuario = function(U, config) {
-			angular.extend(config, {
-				title: 'Editar Usuario',
-				delete_title: '¿Eliminar Usuario: '+U.Nombre+'?',
-			});
-
-			Ctrl.UsuariosCRUD.dialog(U, config).then(function(updatedElm){
-				if(!updatedElm) return false;
-				if(updatedElm == 'DELETE'){ 
-					Ctrl.UsuariosCRUD.delete(U); 
-					return false;
-				}
-				Ctrl.UsuariosCRUD.update(updatedElm);
-			});
-		};
 
 	}
 ]);
