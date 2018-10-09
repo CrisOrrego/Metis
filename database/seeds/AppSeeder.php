@@ -11,46 +11,7 @@ class AppSeeder extends Seeder
      */
     public function run()
     {
-        //Servidores
-        /*DB::table('servidores')->truncate();
-        $Regs = [ 
-            [ 'Nombre' => 'local', 'Tipo' => 'mysql', 'DSN' => null, 'Host' => 'localhost', 'Database' => 'sakila', 'Username' => 'root', 'Password' => '1234' ],
-        ];
-        DB::table('servidores')->insert($Regs);
-
-
-
-
-        //Cubos
-        DB::table('cubos')->truncate();
-        $Regs = [ 
-            [
-                'servidor_id' => 1, 'Nombre' => 'Clientes', 
-                'Consulta' => "SELECT l.*, SUBSTR(l.country,1,1) AS Inicial FROM `customer_list` l", 
-                'Filtros' => '[]', 
-                'Columnas' => '[]' 
-            ]
-        ];
-        DB::table('cubos')->insert($Regs);
-
-
-        //Paneles
-        DB::table('paneles')->truncate();
-        $Regs = [ 
-            [ 'cubo_id' => 1, 'Titulo' => 'Panel 1', 'Descripcion' => 'Este panel incluye...', 'Tipo' => 'Table',     'Config' => '{}' ],
-            [ 'cubo_id' => 1, 'Titulo' => 'Panel 2', 'Descripcion' => 'Este panel incluye...', 'Tipo' => 'DataTable', 'Config' => '{}' ],
-            [ 'cubo_id' => 2, 'Titulo' => 'Panel 3', 'Descripcion' => 'Este panel incluye...', 'Tipo' => 'LineChart', 'Config' => '{}' ],
-        ];
-        DB::table('paneles')->insert($Regs);
-
-
-        //Informes
-        DB::table('informes')->truncate();
-        $Regs = [ 
-            [ 'Titulo' => 'Informe 1', 'Config' => '[[ panel_id: 1, flex: 80 ], [ panel_id: 2, flex: 20 ]]' ],
-        ];
-        DB::table('informes')->insert($Regs);
-        */
+ 
 
 
         //Usuarios

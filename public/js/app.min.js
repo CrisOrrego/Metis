@@ -719,9 +719,16 @@ angular.module('PQRS__PQRSCtrl', [])
 			Nombre: '',
 			Nro_Credito: '',
 			Descripcion: '',
-
-			limit: 100
 		};
+
+		Ctrl.downloadUrl = false;
+
+		Ctrl.query = {
+			limit: 20,
+			page: 1,
+		};
+
+		Ctrl.limitOps = [ 20, 50, 100 ];
 
 		Ctrl.Subtipificaciones = [
 			'CONFIRMACIÓN PROCESO DE LEVANTAMIENTO DE PRENDA',
@@ -746,25 +753,59 @@ angular.module('PQRS__PQRSCtrl', [])
 
 		//Obtener
 		Ctrl.Headers = false;
-		Ctrl.getRows = () => {
-			Ctrl.Rows = false;
+		Ctrl.firstLoad = false;
+
+		Ctrl.getRows = (reset) => {
+			if(Ctrl.loading) return;
+
+			Ctrl.firstLoad = true;
+
+			if(reset){
+				Ctrl.query.page = 1;
+				Ctrl.downloadUrl = false;
+			};
+
+			//Ctrl.Rows = false;
 			Ctrl.loading = true;
-			Rs.http('api/PQRS', { 'filters' : Ctrl.filters }, Ctrl, 'Rows').then(() => {
-				if(!Ctrl.Headers && Ctrl.Rows.length > 0){
-					Ctrl.Headers = Object.keys(Ctrl.Rows[0]);
+			Rs.http('api/PQRS', { 'filters' : Ctrl.filters, 'query': Ctrl.query }, Ctrl, 'Rows').then(() => {
+				if(!Ctrl.Headers && Ctrl.Rows.data.length > 0){
+					Ctrl.Headers = Object.keys(Ctrl.Rows.data[0]);
+					//Ctrl.downloadCSV();
 				};
 
 				Ctrl.loading  = false;
 			});
 		};
 
+		Ctrl.prepPag = (page, limit) => {
+			Ctrl.getRows(false);
+		};
+
 
 		//Ctrl.getRows();
 
 		Ctrl.resetFilters = () => {
+			//Ctrl.firstLoad = false;
 			Ctrl.filters = angular.copy(DefFilters);
 		};
 		Ctrl.resetFilters();
+
+
+		Ctrl.creatingCSV = false;
+		Ctrl.downloadCSV = () => {
+			if(Ctrl.creatingCSV) return;
+
+			Ctrl.creatingCSV = true;
+			Rs.http('api/PQRS/create-csv', { 'filters' : Ctrl.filters, 'query': Ctrl.query }).then((d) => {
+				console.log(d);
+				Ctrl.downloadUrl = d;
+				Ctrl.creatingCSV = false;
+			});
+
+		};
+
+		//Ctrl.getRows(true);
+
 
 	}
 ]);
