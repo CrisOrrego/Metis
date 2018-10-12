@@ -33,11 +33,13 @@ class UsuariosController extends Controller
 
         $Usuario = Usuario::where('Email', $User)->first();
 
-        if($Usuario && Hash::check($Pass, $Usuario['Contraseña'])){
+        //return [ $Usuario->exists(), Hash::check($Pass, $Usuario['Contraseña']) ];
+
+        if($Usuario->exists() AND Hash::check($Pass, $Usuario['Contraseña'])){
             return Crypt::encrypt($Usuario->Id);
-        }else{
-            return response()->json(['Msg' => 'Error en correo o contraseña'], 512);
         };
+        return response()->json(['Msg' => 'Error en correo o contraseña'], 512);
+
     }
 
 

@@ -3,7 +3,7 @@
 	<md-toolbar id="MainNav" class="md-short md-whiteframe-1dp bg-black-1">
 		<div class="md-toolbar-tools padding-left" layout>
 
-			<img src="/imgs/Icon.png" class="h25 margin-right-5" />
+			<img src="/imgs/Logo.png" class="h25 margin-right-5" />
 			<h3 class="md-headline margin-right text-thin" md-truncate hide>{{ Opts.APP_NAME }}</h3>
 
 			<md-button class="md-icon-button" ng-click="navTo('Home')" ng-show="State.route.length > 2">
