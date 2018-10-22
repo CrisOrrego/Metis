@@ -21,14 +21,24 @@ angular.module('LoginCtrl', [])
 
 		Ctrl.Login = function(){
 			$http.post('api/Usuarios/login', { User: Ctrl.User, Pass: Ctrl.Pass }).then(function(r){
-				var token = r.data;
-				//console.log(token);
-				$localStorage.token = token;
+				
+				r = r.data;
+				console.log(r);
+
+				if(r.status == 200){
+					var token = r.data;
+					$localStorage.token = token;
+					$state.go('Home');
+				}else{
+					Ctrl.ShowErr(r.data.Msg, 4000); 
+					Ctrl.Pass = '';
+				};
+				
 				//$state.go('Home.Section', { section: 'Inicio' });
-				$state.go('Home');
+				//
 				
 			}, function(r){
-				Ctrl.ShowErr(r.data.Msg); 
+				Ctrl.ShowErr(r.data.Msg, 4000); 
 				Ctrl.Pass = '';
 			});
 		};

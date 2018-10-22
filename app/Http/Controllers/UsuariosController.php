@@ -36,9 +36,16 @@ class UsuariosController extends Controller
         //return [ $Usuario->exists(), Hash::check($Pass, $Usuario['Contraseña']) ];
 
         if($Usuario->exists() AND Hash::check($Pass, $Usuario['Contraseña'])){
-            return Crypt::encrypt($Usuario->Id);
+            return [
+                'status' => 200,
+                'data' => Crypt::encrypt($Usuario->Id)
+            ];
+        }else{
+            return [
+                'status' => 512,
+                'data' => [ 'Msg' => 'Error en correo o contraseña' ]
+            ];
         };
-        return response()->json(['Msg' => 'Error en correo o contraseña'], 512);
 
     }
 
