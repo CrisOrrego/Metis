@@ -26,6 +26,7 @@ Route::get('/pass/{pass}', 		  			'MainController@getPass');
 Route::controller('/api/Main',				'MainController');
 Route::controller('/api/Usuarios',			'UsuariosController');
 Route::controller('/api/PQRS',				'PQRSController');
+Route::controller('/api/Validaciones',		'ValidacionesController');
 
 // Avoid conflicts with AngularJS.
 Blade::setContentTags('<%', '%>'); // For variables and all things Blade.

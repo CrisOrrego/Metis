@@ -18,14 +18,18 @@ angular.module('CRUD', [])
 				obj: null,
 				only_columns: [],
 				add_append: 'end',
+				add_research: false,
+				add_with: false,
 				query_scopes: [],
-				run_fn: []
+				query_with: [],
+				order_by: [],
 			};
 			t.columns = [];
 			t.rows = [];
 
 			angular.extend(t.ops, ops);
-			//console.info('Crud initiated', t.ops.base_url);
+
+			//console.info('Crud initiated', t.ops);
 
 			t.get = function(columns){
 				
@@ -64,6 +68,7 @@ angular.module('CRUD', [])
 					if(t.ops.add_append == 'end'){ t.rows.push(r); }
 					else if(t.ops.add_append == 'start'){ t.rows.unshift(r); }
 					else if(t.ops.add_append == 'refresh'){ t.get(); };
+					return r;
 				});
 			};
 
@@ -72,6 +77,7 @@ angular.module('CRUD', [])
 				return Rs.http(t.ops.base_url, { fn: 'update', ops: t.ops }).then(function(r) {
 					t.ops.obj = null;
 					Rs.updateArray(t.rows, r, t.ops.primary_key);
+					return r;
 				});
 			};
 
@@ -115,13 +121,25 @@ angular.module('CRUD', [])
 				});
 			};
 
-
+			//Poner un scope
+			t.setScope = (Scope, Params) => {
+				var Index = -1;
+				angular.forEach(t.ops.query_scopes, ($S, $k) => {
+					if($S[0] == Scope){ Index = $k; return; }
+				});
+				if(Index == -1){
+					t.ops.query_scopes.push([ Scope, Params ]);
+				}else{
+					t.ops.query_scopes[Index] = [ Scope, Params ];
+				};
+			};
 
 
 		};
 
 		return {
 			config: function (ops) {
+				//console.log('Creating', ops);
 				var DaCRUD = new CRUD(ops);
 				return DaCRUD;
 			}

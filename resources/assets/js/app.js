@@ -41,5 +41,10 @@ angular.module('App', [
 	'LoginCtrl',
 
 	'PQRS__PQRSCtrl',
+	'ConfiguracionCtrl',
+		'Configuracion__UsuariosCtrl',
+		'Configuracion__PerfilesCtrl',
+	'Validaciones__ValidacionesCtrl',
+		'Validaciones__ValidacionDiagCtrl',
 	
 ]);

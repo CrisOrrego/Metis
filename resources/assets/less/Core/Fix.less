@@ -24,10 +24,49 @@ md-input-container.md-Snow_White-theme:not(.md-input-invalid).md-input-focused l
 md-tabs.md-Snow_White-theme .md-tab.md-active, md-tabs.md-Snow_White-theme .md-tab.md-active md-icon, md-tabs.md-Snow_White-theme .md-tab.md-focused, md-tabs.md-Snow_White-theme .md-tab.md-focused md-icon {
     color: rgb(0,0,0) !important;
 }
+md-select.md-Valak-theme .md-select-icon, .md-Valak-theme, md-icon.md-Valak-theme{
+    color: rgba(255, 255, 255, 0.54);
+}
+
+md-input-container.md-Valak-theme .md-input, .md-Valak-theme input{
+    color: rgba(255, 255, 255, 0.87);
+    border-color: rgba(0,0,0,0.12);
+
+    &::placeholder{
+    	color: rgb(105, 105, 105);
+    }
+}
+
+md-input-container.md-Valak-theme .md-placeholder, md-input-container.md-Valak-theme label {
+    color: rgb(105, 105, 105);
+}
+
+.md-subheader.md-Valak-theme {
+    color: rgb(105, 105, 105);
+}
+
+md-input-container.md-Valak-theme:not(.md-input-invalid).md-input-has-value label {
+    color: rgba(160, 160, 160, 0.54);
+}
+
+.md-Valak-theme .md-datepicker-triangle-button .md-datepicker-expand-triangle {
+    border-top-color: rgba(167, 167, 167, 0.54);
+}
+
+md-autocomplete.md-Valak-theme {
+    background: rgb(64, 64, 64);
+}
 
 
 
+md-select.md-Valak-theme:not([disabled]):focus .md-select-value {
+    border-bottom-color: rgb(69,90,100);
+    color: rgba(255, 255, 255, 0.87) !important;
+}
 
+.md-button md-icon {
+    color: inherit !important;
+}
 
 .rounded-well.as-sortable-dragging{
 	overflow: hidden;
@@ -593,6 +632,11 @@ md-sidenav{
  */
 table.md-table th.md-column{
 	font-size: 1em;
+}
+
+.md-table-dark{
+	th.md-column{ color: #6f6f6f !important; }
+	td.md-cell{ color: white !important; }
 }
 
 

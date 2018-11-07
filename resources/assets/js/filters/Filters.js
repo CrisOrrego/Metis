@@ -97,6 +97,16 @@ angular.module('Filters', [])
 			if(typeof n !== 'number') return n;
 			return n.toFixed().replace(/(\d)(?=(\d{3})+(,|$))/g, '$1,');
 		}
+	}).filter('datediff', function() {
+		return function(d,period) {
+			if(!d) return 0;
+			return moment().diff(moment(d), period, false);
+		}
+	}).filter('dateformat', function() {
+		return function(d,format) {
+			if(!d) return d;
+			return moment(d).format(format);
+		}
 	});
 
 

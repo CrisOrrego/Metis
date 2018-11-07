@@ -124,8 +124,8 @@ angular.module('ConfiguracionCtrl', [])
 	
 		Ctrl.Subsecciones = [
 			{ Icon: 'fa-home', 		Titulo: 'General',  url: 'General' },
-			{ Icon: 'fa-id-card', 	Titulo: 'Permisos', url: 'Permisos' },
 			{ Icon: 'fa-user', 		Titulo: 'Usuarios', url: 'Usuarios' },
+			{ Icon: 'fa-id-card', 	Titulo: 'Perfiles', url: 'Perfiles' },
 		];
 
 		if(Rs.State.route.length < 4){
@@ -138,6 +138,77 @@ angular.module('ConfiguracionCtrl', [])
 		};
 
 
+
+	}
+]);
+angular.module('Configuracion__PerfilesCtrl', [])
+.controller('Configuracion__PerfilesCtrl', ['$scope', '$rootScope', '$http', '$mdDialog', '$injector',
+	function($scope, $rootScope, $http, $mdDialog, $injector) {
+
+		console.info('Configuracion__PerfilesCtrl');
+		var Ctrl = $scope;
+		var Rs = $rootScope;
+	
+		Ctrl.PerfilesCRUD = $injector.get('CRUD').config({   base_url: '/api/Usuarios/perfiles' });
+		Ctrl.PerfilesCRUD.get();
+
+		Rs.http('/api/Usuarios/apps', {}, Ctrl, 'Apps');
+
+		Ctrl.Niveles = {
+			0: { Icono: 'fa-ban', Nombre: 'Sin Acceso' },
+			10: { Icono: 'fa-eye', Nombre: 'Solo Lectura' },
+			20: { Icono: 'fa-plus', Nombre: 'Puede Agregar' },
+			30: { Icono: 'fa-pencil', Nombre: 'Puede Editar' },
+			50: { Icono: 'fa-globe', Nombre: 'Control Total' },
+		};
+
+		Ctrl.addPerfil = function(config){
+			angular.extend(config, {
+				title: 'Agregar Perfil',
+				only: ['Titulo']
+			});
+			Ctrl.PerfilesCRUD.dialog({}, config).then(function(newElm){
+				if(!newElm) return false;
+				Ctrl.PerfilesCRUD.add(newElm);
+			});
+		};
+
+		Ctrl.editPerfil = function(U, config) {
+			angular.extend(config, {
+				title: 'Editar Perfil',
+				delete_title: '¿Eliminar Perfil: '+U.Titulo+'?',
+				with_delete: false
+			});
+
+			Ctrl.PerfilesCRUD.dialog(U, config).then(function(updatedElm){
+				if(!updatedElm) return false;
+				if(updatedElm == 'DELETE'){ 
+					Ctrl.PerfilesCRUD.delete(U); 
+					return false;
+				}
+				Ctrl.PerfilesCRUD.update(updatedElm);
+			});
+		};
+
+		Ctrl.PerfilSel = null;
+		Ctrl.openPerfil = (P) => {
+
+			Ctrl.PerfilSel = P;
+			if(!Ctrl.PerfilSel.Config){ 
+				Ctrl.PerfilSel.Config = {};
+				angular.forEach(Ctrl.Apps, (S,kS) => {
+					Ctrl.PerfilSel.Config[kS] = 0;
+				});
+				Ctrl.savePerfil();
+			};
+		};
+
+
+		Ctrl.savePerfil = () => {
+			Ctrl.PerfilesCRUD.update(Ctrl.PerfilSel).then(() => {
+				Rs.showToast('Perfil Actualizado', 'Success');
+			});
+		};
 
 	}
 ]);
@@ -249,9 +320,17 @@ angular.module('Configuracion__UsuariosCtrl', [])
 		var Ctrl = $scope;
 		var Rs = $rootScope;
 	
-		Ctrl.UsuariosCRUD = $injector.get('CRUD').config({   base_url: '/api/Usuarios/usuarios' });
+		Ctrl.UsuariosCRUD = $injector.get('CRUD').config({	
+			base_url: '/api/Usuarios/usuarios',
+			//query_with: ['perfil']
+		});
 		Ctrl.UsuariosCRUD.get();
 
+		/*Ctrl.PerfilesCRUD = $injector.get('CRUD').config({   base_url: '/api/Usuarios/perfiles' });
+		Ctrl.PerfilesCRUD.get().then(() => {
+			Ctrl.Perfiles = Ctrl.PerfilesCRUD.rows;
+			console.log(Ctrl.Perfiles);
+		});*/
 
 		Ctrl.addUsuario = function(config){
 			angular.extend(config, {
@@ -267,6 +346,8 @@ angular.module('Configuracion__UsuariosCtrl', [])
 			angular.extend(config, {
 				title: 'Editar Usuario',
 				delete_title: '¿Eliminar Usuario: '+U.Nombre+'?',
+				only: [ 'Email', 'Nombre', 'Perfil_id' ],
+				with_delete: true
 			});
 
 			Ctrl.UsuariosCRUD.dialog(U, config).then(function(updatedElm){
@@ -356,6 +437,8 @@ angular.module('CRUDDialogCtrl', [])
 
 		angular.extend(Ctrl.Obj, Obj);
 		angular.extend(Ctrl.config, config);
+
+		//console.log('Config', Ctrl.Obj, ops.primary_key);
 
 		Ctrl.cancel = function(){ $mdDialog.hide(false); };
 
@@ -809,6 +892,221 @@ angular.module('PQRS__PQRSCtrl', [])
 
 	}
 ]);
+angular.module('Validaciones__ValidacionDiagCtrl', [])
+.controller('Validaciones__ValidacionDiagCtrl', ['$scope', '$rootScope', '$http', '$mdDialog', '$filter', 'Validacion', 'Causales',
+	function($scope, $rootScope, $http, $mdDialog, $filter, Validacion, Causales) {
+
+		console.info('Validaciones__ValidacionDiagCtrl');
+		var Ctrl = $scope;
+		var Rs = $rootScope;
+	
+		Ctrl.Title = 'Nueva Validación';
+		Ctrl.Cancel = function(){ $mdDialog.cancel(); }
+
+		Ctrl.TiposDoc = ['CC','NIT'];
+		//Ctrl.Hoy = moment().toDate();
+		Ctrl.mimimumAge = moment().add(-18, 'years').toDate();
+		Ctrl.new = true;
+		Ctrl.clienteSearched = false;
+		Ctrl.comentariosLoaded = false;
+		Ctrl.Comentarios = [];
+		Ctrl.newComment = '';
+
+
+		Ctrl.getEdad = () => {
+			Ctrl.Cliente.edad = moment().diff(moment(Ctrl.Cliente.FechaNacimiento), 'years', false);
+		};
+
+		Ctrl.Val = {
+			causal_id: null,
+		};
+
+		Ctrl.Cliente = {
+			id: null,
+			TipoDoc: 'CC',
+			Doc: '',
+			Nombre: '',
+			FechaNacimiento: null,
+			edad: 0,
+		};
+
+		Ctrl.searchCliente = () => {
+			Rs.http('api/Validaciones/search-cliente', Ctrl.Cliente).then((r) => {
+				if(r == 'Not Found'){
+					Rs.showToast('Cliente no encontrado, favor crear', 'Error');
+				}else{
+					Ctrl.Cliente = r;
+					Ctrl.getEdad();
+				};
+				Ctrl.clienteSearched = true;
+			});
+		};
+
+		Ctrl.searchCausales = (searchText) => {
+			return $filter('filter')(Causales, searchText);
+		};
+
+		Ctrl.CausalSelChange = (CausalSel) => {
+			if(typeof CausalSel == 'undefined'){
+				Ctrl.Val.causal_id = null;
+			}else{
+				Ctrl.Val.causal_id = CausalSel.id;
+			}
+		};
+
+		Ctrl.check = () => {
+			if(Ctrl.Cliente.Doc.length == 0){ Rs.showToast('Falta documento del cliente', 'Error'); return false; }
+			if(Ctrl.Cliente.Nombre.length == 0){ Rs.showToast('Falta nombre del cliente', 'Error'); return false; }
+			if(Ctrl.Cliente.TipoDoc == 'NIT'){
+				Ctrl.Cliente.FechaNacimiento = null;
+			}else{
+				if(Ctrl.Cliente.FechaNacimiento == null){ Rs.showToast('Falta fecha de nacimiento del cliente', 'Error'); return false; }
+			}
+			if(Ctrl.Val.causal_id == null){ Rs.showToast('Falta la causal', 'Error'); return false; }
+
+			return true;
+		};
+
+		Ctrl.create = () => {
+			var checked = Ctrl.check();
+			if(!checked) return false;
+
+			Rs.http('api/Validaciones/create', { Validacion: Ctrl.Val, Cliente: Ctrl.Cliente }).then((r) => {
+				Ctrl.Val = r[0];
+				Ctrl.Cliente = r[1];
+
+				Rs.showToast('Validación Creada', 'Success');
+				Ctrl.new = false;
+				Ctrl.comentariosLoaded = true;
+			});
+		};
+
+
+		Ctrl.save = (mode) => {
+			var checked = Ctrl.check();
+			if(!checked) return false;
+
+			Rs.http('api/Validaciones/save', { mode: mode, Validacion: Ctrl.Val, Cliente: Ctrl.Cliente }).then((r) => {
+				$mdDialog.hide();
+			});
+		};
+
+		Ctrl.terminate = (mode) => {
+			Rs.Confirm({
+				Titulo: '¿Terminar esta validación como '+mode+'?',
+				Detail: 'Cerrar atención',
+				Buttons: [
+					{ Text: 'Terminar', Class: 'md-raised md-danger', Value: true }
+				],
+			}).then((confirmed) => {
+				if(confirmed){
+					Ctrl.save(mode);
+				};
+			});
+		}
+
+
+		//Comentarios
+		Ctrl.addComment = () => {
+			var newComment = Ctrl.newComment.trim();
+			if(newComment.length == 0) return;
+
+			Rs.http('api/Validaciones/add-comentario', { Validacion: Ctrl.Val, newComment: newComment }).then((c) => {
+				Ctrl.Comentarios.unshift(c);
+				Ctrl.newComment = '';
+			});
+		};
+
+
+		//Si no es nuevo
+		if(Validacion !== null){
+			Ctrl.Val = angular.copy(Validacion);
+			Ctrl.Cliente = angular.copy(Validacion.cliente);
+			Ctrl.new = false;
+			Ctrl.clienteSearched = true;
+			Ctrl.CausalSel = $filter('filter')(Causales, { id: Ctrl.Val.causal_id })[0];
+
+			Rs.http('api/Validaciones/comentarios', { validacion_id: Ctrl.Val.id }, Ctrl, 'Comentarios').then(() => {
+				Ctrl.comentariosLoaded = true;
+			});
+		};
+
+	}
+]);
+angular.module('Validaciones__ValidacionesCtrl', [])
+.controller('Validaciones__ValidacionesCtrl', ['$scope', '$rootScope', '$http', '$mdDialog', '$injector',
+	function($scope, $rootScope, $http, $mdDialog, $injector) {
+
+		console.info('Validaciones__ValidacionesCtrl');
+		var Ctrl = $scope;
+		var Rs = $rootScope;
+	
+		Ctrl.Title = 'Titulo';
+		Ctrl.Cancel = function(){ $mdDialog.cancel(); }
+
+		Ctrl.EstadosUsuario = [
+			{ Nombre: 'Activo', 	Color: '#01a727' }, 
+			{ Nombre: 'Baño',      	Color: '#d66702' },
+			{ Nombre: 'Brake',     	Color: '#bb069a' },
+			{ Nombre: 'Almuerzo',  	Color: '#bd9804' },
+		];
+
+		Ctrl.EstadoUsuario = 'Activo';
+
+		Ctrl.filterNavOpen = true;
+		Ctrl.Hoy = moment().toDate();
+		Ctrl.Desde = moment().add(-1, 'days').toDate();
+		Ctrl.Hasta = angular.copy(Ctrl.Hoy);
+		Ctrl.Estado = 'Pendientes';
+		Ctrl.TipoCliente = 'Todos';
+		Ctrl.CausalFilter = false;
+
+		//Validaciones
+		Ctrl.ValidacionesCRUD = $injector.get('CRUD').config({ 
+			base_url: '/api/Validaciones',
+			order_by: ['-id'],
+			query_scopes: [ 
+				[ 'usuario', Rs.Usuario.Id ],
+				[ 'entre',   [] ],
+				[ 'estado',  'Pendientes' ],
+				[ 'causal',  false ],
+			],
+			query_with: ['cliente'],
+			add_append: 'refresh',
+			limit: 1000
+		});
+
+		Ctrl.getValidaciones = () => {
+			Ctrl.ValidacionesCRUD.setScope('entre', [ moment(Ctrl.Desde).format('YYYY-MM-DD'), Ctrl.Hasta ]);
+			Ctrl.ValidacionesCRUD.setScope('estado', Ctrl.Estado );
+			Ctrl.ValidacionesCRUD.setScope('tipocliente', Ctrl.TipoCliente );
+			Ctrl.ValidacionesCRUD.setScope('causal', Ctrl.CausalFilter );
+			Ctrl.ValidacionesCRUD.get();
+		};
+
+		Ctrl.validacionDiag = (Obj) => {
+			$mdDialog.show({
+				controller:  'Validaciones__ValidacionDiagCtrl',
+				templateUrl: 'Frag/Validaciones.ValidacionDiag',
+				locals: 	{ Validacion: Obj, Causales: Ctrl.Causales },
+				clickOutsideToClose: false,
+				escapeToClose: false,
+				fullscreen:  true,
+				multiple: 	 true
+			}).then(() => {
+				Ctrl.getValidaciones();
+			});
+		};
+
+		Rs.http('api/Validaciones/causales', {}, Ctrl, 'Causales').then(() => {
+			//Ctrl.validacionDiag(null);
+			Ctrl.getValidaciones();
+			
+		});
+		
+
+	}
+]);
 angular.module('CRUD', [])
 .factory('CRUD', [ '$rootScope', '$q', '$mdDialog', 
 	function($rootScope, $q, $mdDialog){
@@ -829,14 +1127,18 @@ angular.module('CRUD', [])
 				obj: null,
 				only_columns: [],
 				add_append: 'end',
+				add_research: false,
+				add_with: false,
 				query_scopes: [],
-				run_fn: []
+				query_with: [],
+				order_by: [],
 			};
 			t.columns = [];
 			t.rows = [];
 
 			angular.extend(t.ops, ops);
-			//console.info('Crud initiated', t.ops.base_url);
+
+			//console.info('Crud initiated', t.ops);
 
 			t.get = function(columns){
 				
@@ -875,6 +1177,7 @@ angular.module('CRUD', [])
 					if(t.ops.add_append == 'end'){ t.rows.push(r); }
 					else if(t.ops.add_append == 'start'){ t.rows.unshift(r); }
 					else if(t.ops.add_append == 'refresh'){ t.get(); };
+					return r;
 				});
 			};
 
@@ -883,6 +1186,7 @@ angular.module('CRUD', [])
 				return Rs.http(t.ops.base_url, { fn: 'update', ops: t.ops }).then(function(r) {
 					t.ops.obj = null;
 					Rs.updateArray(t.rows, r, t.ops.primary_key);
+					return r;
 				});
 			};
 
@@ -926,13 +1230,25 @@ angular.module('CRUD', [])
 				});
 			};
 
-
+			//Poner un scope
+			t.setScope = (Scope, Params) => {
+				var Index = -1;
+				angular.forEach(t.ops.query_scopes, ($S, $k) => {
+					if($S[0] == Scope){ Index = $k; return; }
+				});
+				if(Index == -1){
+					t.ops.query_scopes.push([ Scope, Params ]);
+				}else{
+					t.ops.query_scopes[Index] = [ Scope, Params ];
+				};
+			};
 
 
 		};
 
 		return {
 			config: function (ops) {
+				//console.log('Creating', ops);
 				var DaCRUD = new CRUD(ops);
 				return DaCRUD;
 			}
@@ -1037,6 +1353,16 @@ angular.module('Filters', [])
 		return function(n) {
 			if(typeof n !== 'number') return n;
 			return n.toFixed().replace(/(\d)(?=(\d{3})+(,|$))/g, '$1,');
+		}
+	}).filter('datediff', function() {
+		return function(d,period) {
+			if(!d) return 0;
+			return moment().diff(moment(d), period, false);
+		}
+	}).filter('dateformat', function() {
+		return function(d,format) {
+			if(!d) return d;
+			return moment(d).format(format);
 		}
 	});
 
@@ -1296,6 +1622,11 @@ angular.module('App', [
 	'LoginCtrl',
 
 	'PQRS__PQRSCtrl',
+	'ConfiguracionCtrl',
+		'Configuracion__UsuariosCtrl',
+		'Configuracion__PerfilesCtrl',
+	'Validaciones__ValidacionesCtrl',
+		'Validaciones__ValidacionDiagCtrl',
 	
 ]);
 angular.module('appConfig', [])

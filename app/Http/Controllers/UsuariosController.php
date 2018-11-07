@@ -11,6 +11,7 @@ use App\Functions\CRUD;
 use App\Models\Usuario;
 use Crypt;
 use Illuminate\Support\Facades\Hash;
+use DB;
 
 class UsuariosController extends Controller
 {
@@ -53,7 +54,7 @@ class UsuariosController extends Controller
             $token = Crypt::decrypt($token);
 
             //Obtener el Usuario
-            $Usuario = Usuario::where('Id', $token)->first();
+            $Usuario = Usuario::with('perfil')->where('Id', $token)->first();
             if(!$Usuario) return response()->json(['Msg' => 'No autorizado'], 400);
 
             $Secciones = $this->getSecciones($Usuario);
@@ -67,13 +68,28 @@ class UsuariosController extends Controller
         }
     }
 
+    public function postApps()
+    {
+        return collect(DB::table('apps')->orderBy('Orden')->get())->keyBy('id');
+    }
+
     public function getSecciones($Usuario)
     {
-        $Secciones = [
+        $Perfil = $Usuario->perfil->Config;
+        $Secciones = $this->postApps()->filter(function($S) use ($Perfil){
+            
+            //dd($Perfil);
+            //return $kS == 'InformeBI';
+            return $Perfil[$S->id] > 0;
+        });
+
+
+
+        /*$Secciones = [
             'PQRS'          =>  [ 'No' => 0, 'Icono' => 'fa-commenting',    'Nombre' => 'Reporte de PQRS'  ],
             'InformeBI'     =>  [ 'No' => 1, 'Icono' => 'fa-area-chart',    'Nombre' => 'Informe Power BI'  ],
             'Configuracion' =>  [ 'No' => 2, 'Icono' => 'fa-cog',           'Nombre' => 'Configuración'  ],
-        ];
+        ];*/
 
         return $Secciones;
     }
