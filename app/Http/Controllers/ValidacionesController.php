@@ -54,6 +54,8 @@ class ValidacionesController extends Controller
 
         $Usuario = $this->authenticate();
         $Validacion = $this->prepVal($Validacion, $Usuario);
+        $Validacion['Ingreso'] = Carbon::now();
+        $Validacion['Inicio'] = Carbon::now();
 
         $DaVal = Validacion::create($Validacion);
 
