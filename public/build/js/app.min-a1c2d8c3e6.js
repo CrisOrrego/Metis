@@ -21,12 +21,24 @@ angular.module('LoginCtrl', [])
 
 		Ctrl.Login = function(){
 			$http.post('api/Usuarios/login', { User: Ctrl.User, Pass: Ctrl.Pass }).then(function(r){
-				var token = r.data;
-				$localStorage.token = token;
-				$state.go('Home.Section', { section: 'Inicio' });
+				
+				r = r.data;
+				console.log(r);
+
+				if(r.status == 200){
+					var token = r.data;
+					$localStorage.token = token;
+					$state.go('Home');
+				}else{
+					Ctrl.ShowErr(r.data.Msg, 4000); 
+					Ctrl.Pass = '';
+				};
+				
+				//$state.go('Home.Section', { section: 'Inicio' });
+				//
 				
 			}, function(r){
-				Ctrl.ShowErr(r.data.Msg); 
+				Ctrl.ShowErr(r.data.Msg, 4000); 
 				Ctrl.Pass = '';
 			});
 		};
@@ -36,14 +48,19 @@ angular.module('MainCtrl', [])
 .controller('MainCtrl', ['$rootScope', 'appFunctions', '$localStorage', 
 	function($rootScope, appFunctions, $localStorage) {
 
-		//console.info('MainCtrl');
+		console.info('MainCtrl');
 		var Rs = $rootScope;
 		Rs.Storage = $localStorage;
 
 		Rs.$on("$stateChangeSuccess", Rs.stateChanged);
 		Rs.stateChanged();
+		//const PermLevels = { no: 0, see: 1, add: 2, edit: 3 };
 
-
+		Rs.checkPerm = (opt, level) => {
+			//console.log(Rs.Usuario, opt, level);
+			if(!Rs.Usuario) return false;
+			return Rs.Usuario.perfil.Config[opt] >= PermLevels[level];
+		};
 
 		//User Session
 		Rs.changePassword = function(){
@@ -69,29 +86,41 @@ angular.module('MainCtrl', [])
 		};
 
 		Rs.Logout = function(){
-			Rs.navTo('Login', {});
+			Rs.http('api/Usuarios/logout', { Usuario: Rs.Usuario }).then(() => {
+				Rs.navTo('Login', {});
+			});
+			
 		};
-		
-		
 
-
-		if(Rs.State.route.length == 2){
+		/*if(Rs.State.route.length == 2){
 			Rs.navTo('Home.Section', { section: 'Cubos' });
-		};
+		};*/
 
 		
 		//Configuración puntual
-		Rs.TiposPanel = {
-			Table:     { Nombre: 'Tabla Simple', 			Icon: 'fa-table'					},
-			DataTable: { Nombre: 'Tabla de Análisis', 		Icon: 'fa-columns'					},
-			DataValue: { Nombre: 'Valor Resumen', 			Icon: 'fa-hashtag'					},
-			
-			PieChart:  { Nombre: 'Gráfico de Torta', 		Icon: 'fa-pie-chart'				},
-			ColChart:  { Nombre: 'Gráfico de Columnas', 	Icon: 'fa-bar-chart'				},
-			BarChart:  { Nombre: 'Gráfico de Barras', 		Icon: 'fa-bar-chart fa-rotate-90' },
-			//LineChart: { Nombre: 'Gráfico de Líneas', 	Icon: 'fa-line-chart'				},
-		};
 		
+
+	}
+]);
+angular.module('SiteCtrl', [])
+.controller('SiteCtrl', ['$scope', '$rootScope', '$localStorage', '$state', 
+	function($scope, $rootScope, $localStorage, $state) {
+
+		console.info('SiteCtrl');
+		var Ctrl = $scope;
+		var Rs = $rootScope;
+
+		Ctrl.goLogin = () => {
+
+			if($localStorage.token){
+				$state.go('Home');
+			}else{
+				$state.go('Login');
+			};
+
+		};
+
+
 
 	}
 ]);
@@ -105,8 +134,8 @@ angular.module('ConfiguracionCtrl', [])
 	
 		Ctrl.Subsecciones = [
 			{ Icon: 'fa-home', 		Titulo: 'General',  url: 'General' },
-			{ Icon: 'fa-id-card', 	Titulo: 'Permisos', url: 'Permisos' },
 			{ Icon: 'fa-user', 		Titulo: 'Usuarios', url: 'Usuarios' },
+			{ Icon: 'fa-id-card', 	Titulo: 'Perfiles', url: 'Perfiles' },
 		];
 
 		if(Rs.State.route.length < 4){
@@ -119,6 +148,77 @@ angular.module('ConfiguracionCtrl', [])
 		};
 
 
+
+	}
+]);
+angular.module('Configuracion__PerfilesCtrl', [])
+.controller('Configuracion__PerfilesCtrl', ['$scope', '$rootScope', '$http', '$mdDialog', '$injector',
+	function($scope, $rootScope, $http, $mdDialog, $injector) {
+
+		console.info('Configuracion__PerfilesCtrl');
+		var Ctrl = $scope;
+		var Rs = $rootScope;
+	
+		Ctrl.PerfilesCRUD = $injector.get('CRUD').config({   base_url: '/api/Usuarios/perfiles' });
+		Ctrl.PerfilesCRUD.get();
+
+		Rs.http('/api/Usuarios/apps', {}, Ctrl, 'Apps');
+
+		Ctrl.Niveles = {
+			0: { Icono: 'fa-ban', Nombre: 'Sin Acceso' },
+			10: { Icono: 'fa-eye', Nombre: 'Solo Lectura' },
+			20: { Icono: 'fa-plus', Nombre: 'Puede Agregar' },
+			30: { Icono: 'fa-pencil', Nombre: 'Puede Editar' },
+			50: { Icono: 'fa-globe', Nombre: 'Control Total' },
+		};
+
+		Ctrl.addPerfil = function(config){
+			angular.extend(config, {
+				title: 'Agregar Perfil',
+				only: ['Titulo']
+			});
+			Ctrl.PerfilesCRUD.dialog({}, config).then(function(newElm){
+				if(!newElm) return false;
+				Ctrl.PerfilesCRUD.add(newElm);
+			});
+		};
+
+		Ctrl.editPerfil = function(U, config) {
+			angular.extend(config, {
+				title: 'Editar Perfil',
+				delete_title: '¿Eliminar Perfil: '+U.Titulo+'?',
+				with_delete: false
+			});
+
+			Ctrl.PerfilesCRUD.dialog(U, config).then(function(updatedElm){
+				if(!updatedElm) return false;
+				if(updatedElm == 'DELETE'){ 
+					Ctrl.PerfilesCRUD.delete(U); 
+					return false;
+				}
+				Ctrl.PerfilesCRUD.update(updatedElm);
+			});
+		};
+
+		Ctrl.PerfilSel = null;
+		Ctrl.openPerfil = (P) => {
+
+			Ctrl.PerfilSel = P;
+			if(!Ctrl.PerfilSel.Config){ 
+				Ctrl.PerfilSel.Config = {};
+				angular.forEach(Ctrl.Apps, (S,kS) => {
+					Ctrl.PerfilSel.Config[kS] = 0;
+				});
+				Ctrl.savePerfil();
+			};
+		};
+
+
+		Ctrl.savePerfil = () => {
+			Ctrl.PerfilesCRUD.update(Ctrl.PerfilSel).then(() => {
+				Rs.showToast('Perfil Actualizado', 'Success');
+			});
+		};
 
 	}
 ]);
@@ -217,7 +317,7 @@ angular.module('Configuracion__PermisosCtrl', [])
 		Ctrl.AccessLevels = [
 			{ Level: 0, Desc: 'Sin Acceso' },
 			{ Level: 1, Desc: 'Puede Ver' },
-			{ Level: 2, Desc: 'Puede Crear' },
+			//{ Level: 2, Desc: 'Puede Crear' },
 			{ Level: 3, Desc: 'Puede Editar' }
 		];
 	}
@@ -230,9 +330,17 @@ angular.module('Configuracion__UsuariosCtrl', [])
 		var Ctrl = $scope;
 		var Rs = $rootScope;
 	
-		Ctrl.UsuariosCRUD = $injector.get('CRUD').config({   base_url: '/api/Usuarios/usuarios' });
+		Ctrl.UsuariosCRUD = $injector.get('CRUD').config({	
+			base_url: '/api/Usuarios/usuarios',
+			//query_with: ['perfil']
+		});
 		Ctrl.UsuariosCRUD.get();
 
+		/*Ctrl.PerfilesCRUD = $injector.get('CRUD').config({   base_url: '/api/Usuarios/perfiles' });
+		Ctrl.PerfilesCRUD.get().then(() => {
+			Ctrl.Perfiles = Ctrl.PerfilesCRUD.rows;
+			console.log(Ctrl.Perfiles);
+		});*/
 
 		Ctrl.addUsuario = function(config){
 			angular.extend(config, {
@@ -248,6 +356,8 @@ angular.module('Configuracion__UsuariosCtrl', [])
 			angular.extend(config, {
 				title: 'Editar Usuario',
 				delete_title: '¿Eliminar Usuario: '+U.Nombre+'?',
+				only: [ 'Email', 'Nombre', 'Perfil_id' ],
+				with_delete: true
 			});
 
 			Ctrl.UsuariosCRUD.dialog(U, config).then(function(updatedElm){
@@ -375,6 +485,8 @@ angular.module('CRUDDialogCtrl', [])
 
 		angular.extend(Ctrl.Obj, Obj);
 		angular.extend(Ctrl.config, config);
+
+		//console.log('Config', Ctrl.Obj, ops.primary_key);
 
 		Ctrl.cancel = function(){ $mdDialog.hide(false); };
 
@@ -671,874 +783,388 @@ angular.module('ListSelectorCtrl', [])
 
 	}
 ]);
-angular.module('CubosCtrl', [])
-.controller('CubosCtrl', ['$scope', '$rootScope', '$injector', '$mdDialog', 
-	function($scope, $rootScope, $injector, $mdDialog) {
-
-		//console.info('CubosCtrl');
-		var Ctrl = $scope;
-		var Rs = $rootScope;
-
-		Ctrl.ServidoresCRUD = $injector.get('CRUD').config({ base_url: '/api/Cubos/servidores' });
-		Ctrl.CubosCRUD		= $injector.get('CRUD').config({ base_url: '/api/Cubos/cubos' });
-
-		Ctrl.openServidor = function(S){
-			Ctrl.ServidorSel = S;
-			Ctrl.CuboSel = null;
-			Ctrl.CubosCRUD.where(['servidor_id', '=', S.id]).get(['Nombre']).then(function(){
-				//Ctrl.openCubo(Ctrl.CubosCRUD.rows[0]);
-			});
-		};
-
-		Ctrl.addServidor = function(config){
-			angular.extend(config, {
-				title: 'Agregar Conexión',
-			});
-			Ctrl.ServidoresCRUD.dialog({}, config).then(function(newElm){
-				if(!newElm) return false;
-				Ctrl.ServidoresCRUD.add(newElm);
-			});
-		};
-
-		Ctrl.testServidor = function(Servidor){
-			Rs.http('/api/Cubos/test-servidor', { Servidor: Servidor }).then(function(r){
-				Rs.showToast('Conexión exitosa', 'Success');
-			});
-		};
-
-		Ctrl.editServidor = function(S, config) {
-			angular.extend(config, {
-				title: 'Editar Conexión',
-				delete_title: '¿Eliminar Conexión: '+S.Nombre+'?',
-				buttons: [
-					{ text: 'Probar', fn: Ctrl.testServidor }
-				]
-			});
-
-			Ctrl.ServidoresCRUD.dialog(S, config).then(function(updatedElm){
-				if(!updatedElm) return false;
-				if(updatedElm == 'DELETE'){ 
-					Ctrl.ServidoresCRUD.delete(S); 
-					Ctrl.ServidorSel = null; 
-					Ctrl.CuboSel = null; 
-					return false;
-				}
-				Ctrl.ServidoresCRUD.update(updatedElm);
-			});
-		};
-
-		Ctrl.openCubo = function(C){
-			Ctrl.CubosCRUD.find(C.id, Ctrl, 'CuboSel').then(function(){
-				//Ctrl.testCube();
-			});
-		};
-
-		Ctrl.addCubo = function(){
-			Ctrl.CubosCRUD.dialog({
-				servidor_id: Ctrl.ServidorSel.id,
-				Filtros: [],
-				Columnas: [],
-			}, {
-				only: [ 'Nombre' ]
-			}).then(function(newElm){
-				if(!newElm) return false;
-				Ctrl.CubosCRUD.add(newElm);
-			});
-		};
-
-		Ctrl.saveCubo = function(){
-			Ctrl.CubosCRUD.update(Ctrl.CuboSel).then(function(){
-				Rs.showToast('Cubo Actualizado', 'Success');
-				console.log(Ctrl.CuboForm);
-			});
-		};
-
-		Ctrl.deleteCubo = function(ev){
-			Rs.confirmDelete({
-				Title: '¿Borrar Cubo?',
-			}).then(function(del){
-				if(del){
-					Ctrl.CubosCRUD.delete(Ctrl.CuboSel).then(function(){
-						Ctrl.CuboSel = null;
-						Rs.showToast('Cubo Eliminado', 'Error');
-					});
-				}
-			});
-		};
-
-
-		Ctrl.ServidoresCRUD.get().then(function(){
-			Ctrl.openServidor(Ctrl.ServidoresCRUD.rows[0]);
-		});
-
-
-
-		//Cubo Details
-		Ctrl.getFilter = function(type){
-			if(type == 'Fecha')  return { Defecto: 'today', Op1: 'Y-m-d', Op2: null,  Op3: null };
-			if(type == 'Lista')  return { Defecto: '', 	    Op1: [],       Op2: null,  Op3: null };
-			if(type == 'Texto')  return { Defecto: '', 	    Op1: null,     Op2: null,  Op3: null };
-			if(type == 'Numero') return { Defecto: null,    Op1: null,     Op2: null,   Op3: null };
-		};
-
-
-		Ctrl.addFiltro = function(type){
-			var Cant = Ctrl.CuboSel.Filtros.length;
-			var DefObj = Ctrl.getFilter(type);
-
-			angular.extend(DefObj, {
-				Nombre: 'Filtro '+(Cant+1),
-				Tipo: type,
-			});
-
-			Ctrl.CuboSel.Filtros.push(DefObj);
-		};
-
-		Ctrl.changeFiltro = function(k, type){
-			var DefObj = Ctrl.getFilter(type);
-			angular.extend(Ctrl.CuboSel.Filtros[k], DefObj);
-		};
-
-		Ctrl.deleteFiltro = function(k){
-			Ctrl.CuboSel.Filtros.splice(k,1);
-		};
-
-		Ctrl.FiltrosTipos = [ 'Fecha', 'Lista', 'Texto', 'Numero' ];
-
-		Ctrl.FechaDefaults = [
-			{ Nombre: 'Primer dia del año pasado', 		Valor: 'first day of january last year' },
-			{ Nombre: 'Primer dia de este año', 		Valor: 'first day of january this year' },
-			{ Nombre: 'Hace 3 meses', 					Valor: '-3 month' },
-			{ Nombre: 'Primer día del mes antepasado', 	Valor: 'first day of this month - 2 month' },
-			{ Nombre: 'El mes antepasado', 				Valor: '-2 month' },
-			{ Nombre: 'Primer día del mes pasado', 		Valor: 'first day of last month' },
-			{ Nombre: 'El mes pasado', 					Valor: '-1 month' },
-			{ Nombre: 'Primer día de este mes', 		Valor: 'first day of this month' },
-			{ Nombre: 'Primer día de esta semana', 		Valor: 'this week' },
-			{ Nombre: 'Antier', 						Valor: '-2 days' },
-			{ Nombre: 'Ayer', 							Valor: 'yesterday' },
-			{ Nombre: 'Hoy', 							Valor: 'today' },
-			{ Nombre: 'Mañana', 						Valor: 'tomorrow' },
-			{ Nombre: 'Pasadomañana', 					Valor: '+2 days' },
-			{ Nombre: 'Último día de esta semana', 		Valor: 'this week +6 days' },
-			{ Nombre: 'Último día de este mes', 		Valor: 'last day of this month' },
-			{ Nombre: 'El próximo mes', 				Valor: '+1 month' },
-			{ Nombre: 'Último día del proximo mes', 	Valor: 'last day of next month' },
-			{ Nombre: 'En 2 meses', 					Valor: '+2 months' },
-			{ Nombre: 'En 3 meses', 					Valor: '+3 months' },
-			{ Nombre: 'Último día de este año', 		Valor: 'last day of december this year' },
-		];
-
-
-
-
-		Ctrl.deleteColumna = function(k){
-			Ctrl.CuboSel.Columnas.splice(k,1);
-		};
-
-		Ctrl.Columnas = [
-			{ Columna: 'id', 		Tipo: 'Numero', 	Formato: null 		},
-			{ Columna: 'Titulo', 	Tipo: 'Texto',  	Formato: null 		},
-			{ Columna: 'Fecha',  	Tipo: 'Fecha',  	Formato: 'Y-m-d' 	},
-		];
-
-
-
-		Ctrl.testCube = function() {
-			$mdDialog.show({
-				controller: 'Cubo_TestDialogCtrl',
-				templateUrl: 'Frag/Cubos.Cubo_TestDialog',
-				locals: { Cubo : Ctrl.CuboSel },
-				clickOutsideToClose: false,
-				fullscreen: true,
-				multiple: true,
-			});
-		};
-
-		
-
-
-	}
-]);
-angular.module('Cubo_TestDialogCtrl', [])
-.controller('Cubo_TestDialogCtrl', ['$scope', '$rootScope', '$http', '$mdDialog', 'Cubo', 
-	function($scope, $rootScope, $http, $mdDialog, Cubo) {
-
-		var Ctrl = $scope;
-		var Rs = $rootScope;
-
-		Ctrl.Cubo = angular.copy(Cubo);
-		Ctrl.limit = 10;
-		Ctrl.limitOps = {
-			10: 	'Mostrar 10',
-			100: 	'Mostrar 100',
-			500: 	'Mostrar 500',
-			1000: 	'Mostrar 1000',
-			2000: 	'Mostrar 2000',
-		};
-
-		Ctrl.Cancel = function(){ $mdDialog.cancel(); }
-
-		Ctrl.getValues = function() {
-			return Rs.http('api/Cubos/filtros-values', { Cubo: Cubo }).then(function(f){
-				Ctrl.Cubo.Filtros = f;
-				Ctrl.getData();
-			});	
-		};
-
-		Ctrl.getData = function(){
-			Ctrl.Data = null;
-			return Rs.http('api/Cubos/test-data', { Cubo: Ctrl.Cubo, limit: Ctrl.limit }, Ctrl, 'Data');
-		};
-
-		Ctrl.getValues();
-
-		Ctrl.getColumns = function(){
-			Cubo.Columnas = Ctrl.Data.Columns;
-			$mdDialog.hide();
-		};
-
-	}
-]);
-angular.module('InformesCtrl', [])
-.controller('InformesCtrl', ['$scope', '$rootScope', '$http', '$injector', '$timeout', '$location', 'clipboard', '$mdDialog',
-	function($scope, $rootScope, $http, $injector, $timeout, $location, clipboard, $mdDialog) {
-
-		//console.info('InformesCtrl');
-		var Ctrl = $scope;
-		var Rs = $rootScope;
-		var InformesDefConfig = null;
-
-		Ctrl.showInformesNav = false;
-		Ctrl.PaginaSel = 0;
-		Ctrl.Informe = null;
-
-		Ctrl.Cancel = function(){
-			$mdDialog.cancel();
-		};
-
-		Ctrl.InformesCRUD = $injector.get('CRUD').config({ 
-			base_url: '/api/Informe/informes',
-		});
-
-		Ctrl.getInformes = function(){
-			Ctrl.InformesCRUD.get(['Titulo']).then(function(){
-				//Ctrl.openInforme(Ctrl.InformesCRUD.rows[0]);
-			});
-		};
-		
-
-		Ctrl.openInforme = function(I){
-			Ctrl.InformesCRUD.find(I.id, Ctrl, 'Informe').then(function(){
-				if(!Ctrl.Informe.Config){ Ctrl.Informe.Config = angular.copy(InformesDefConfig); };
-				//Ctrl.seeInforme();
-			});
-		};
-
-		Ctrl.generateUID = function(len) {
-
-			// Create variables with characters, numbers and special
-			var upperCharacters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'],
-				numbers = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
-			var finalCharacters = upperCharacters.concat(numbers);
-			var finalPassword = [];
-			for (var i = 0; i < len; i++) {
-				finalPassword.push(finalCharacters[Math.floor(Math.random() * finalCharacters.length)]);
-			};
-
-			return finalPassword.join('');
-		};
-
-		Ctrl.addInforme = function(config){
-			angular.extend(config, {
-				title: 'Agregar Informe',
-				only: ['Titulo']
-			});
-			Ctrl.InformesCRUD.dialog({
-				Estado: 'A',
-				Config: angular.copy(InformesDefConfig),
-				Url: Ctrl.generateUID(5)
-			}, config).then(function(newElm){
-				if(!newElm) return false;
-				Ctrl.InformesCRUD.add(newElm);
-			});
-		};
-
-		Ctrl.changeURL = function(){
-			Rs.Confirm({
-				Titulo: '¿Cambiar la dirección del informe?',
-				Detail: 'las aplicaciones con la dirección anterior perderán acceso al informe'
-			}).then(function(Change){
-				if(Change){
-					Ctrl.Informe.Url = Ctrl.generateUID(5);
-				};
-			});
-		}
-
-		Ctrl.seeInforme = function(){
-			$mdDialog.show({
-				templateUrl: '/Frag/Informes.Informe_PreviewDialog',
-				clickOutsideToClose: true,
-				fullscreen: true,
-				multiple: true,
-				scope: Ctrl,
-				preserveScope: true
-			});
-		};
-
-		Ctrl.saveInforme = function(){
-			Ctrl.InformesCRUD.update(Ctrl.Informe).then(function(){
-				Rs.showToast('Informe Actualizado', 'Success');
-			});
-		};
-
-		Ctrl.addPage = function(){
-			var Page = angular.copy(InformesDefConfig.Paginas[0]);
-			Page.Pagina = 'Página ' + (Ctrl.Informe.Config.Paginas.length + 1);
-			Ctrl.Informe.Config.Paginas.push(Page);
-		};
-
-		Ctrl.changePag = function(k){
-			Ctrl.PaginaSel = k;
-		};
-
-		Ctrl.removePag = function(){
-			if(Ctrl.Informe.Config.Paginas.length == 1) return false;
-
-			Rs.confirmDelete({
-				Title: '¿Eliminar la página "'+Ctrl.Informe.Config.Paginas[Ctrl.PaginaSel].Pagina+'"?',
-			}).then(function(del){
-				if(!del) return false;
-				Ctrl.Informe.Config.Paginas.splice(Ctrl.PaginaSel,1);
-				Ctrl.PaginaSel = 0;
-			});
-		};
-
-
-
-		Ctrl.addPanel = function(Panel, Cubo) {
-			Ctrl.Informe.Config.Paginas[Ctrl.PaginaSel].Paneles.push({
-				panel_id: 		Panel.id,
-				panel_titulo: 	Panel.Titulo,
-				panel_tipo: 	Panel.Tipo,
-				cubo_id: 		Cubo.id,
-				cubo_nombre: 	Cubo.Nombre,
-				ancho: 			100
-			});
-		};
-
-		Ctrl.Anchos = [ 20, 30, 40, 50, 60, 70, 80, 100 ];
-
-		Ctrl.removePanel = function(k){
-			Ctrl.Informe.Config.Paginas[Ctrl.PaginaSel].Paneles.splice(k,1);
-		};
-
-		Ctrl.dragListener = {
-			accept: function (sourceItemHandleScope, destSortableScope) { return true; },
-		};
-
-		Rs.http('/api/Panel/all', {}, Ctrl, 'Paneles');
-
-		$http.get('/files/InformesDefConfig.json?date=' + moment().unix()).then(function(r){
-			InformesDefConfig = r.data;
-			Ctrl.getInformes();
-		});
-
-		Ctrl.copyUrl = function(){
-			var Url = Rs.Opts.APP_ROUTE + '/' + Ctrl.Informe.Url;
-			clipboard.copyText(Url);
-			Rs.showToast('Dirección copiada al portapapeles', 'Success', 5000, 'bottom right');
-		};
-	}
-]);
-angular.module('InformeViewerCtrl', [])
-.controller('InformeViewerCtrl', ['$scope', '$rootScope', '$http', '$mdToast', '$state', '$timeout', '$window',
-	function($scope, $rootScope, $http, $mdToast, $state, $timeout, $window) {
-
-		//console.info('InformeViewerCtrl');
-		var Ctrl = $scope;
-		var Rs = $rootScope;
-
-		var UID = $state.params.Informe;
-		var PanelesIndex = {};
-
-		//Paginas
-		Ctrl.PaginaSel = 0;
-		Ctrl.changePag = function(k){
-			Ctrl.PaginaSel = k;
-			$timeout(function() {
-				$window.dispatchEvent(new Event("resize"));
-			}, 100);
-		};
-		Ctrl.showFilters = false;
-
-		$http.post('api/Informe/load', { uid: UID }).then(function(r){
-			Ctrl.Informe = r.data.Informe;
-			Ctrl.Paneles = r.data.Paneles;
-			Ctrl.Cubos   = r.data.Cubos;
-
-			document.title = Ctrl.Informe.Titulo;
-
-			//Obtener los indices
-			angular.forEach(Ctrl.Paneles, function(P,k){
-				PanelesIndex[P.id] = k;
-			});
-
-			Ctrl.getDatas();
-		});
-
-		Ctrl.getDatas = function(){
-			Ctrl.LoadCuboIndex = 0;
-			Ctrl.getCuboData();
-		};
-
-		Ctrl.getCuboData = function(){
-			var Cubo = Ctrl.Cubos[Ctrl.LoadCuboIndex];
-
-			$http.post('api/Informe/get-panels', Cubo).then(function(r){
-				//console.log(r.data, PanelesIndex);
-
-				angular.forEach(r.data, function(PanelData, id){
-					Ctrl.Paneles[ PanelesIndex[id] ].Data = PanelData;
-					Ctrl.$broadcast('PANEL_DATA_LOADED', { panel_id: id });
-				});
-
-				Ctrl.LoadCuboIndex++;
-				if(Ctrl.LoadCuboIndex < Ctrl.Cubos.length) Ctrl.getCuboData();
-			});
-		};
-	}
-]);
-angular.module('PanelesCtrl', [])
-.controller('PanelesCtrl', ['$scope', '$rootScope', '$http', '$mdDialog', '$injector', '$timeout',
-	function($scope, $rootScope, $http, $mdDialog, $injector, $timeout) {
-
-		//console.info('PanelesCtrl');
-		var Ctrl = $scope;
-		var Rs = $rootScope;
-
-		Ctrl.showPanelesNav = true;
-
-		Ctrl.CubosCRUD = $injector.get('CRUD').config({   base_url: '/api/Cubos/cubos' 	 });
-		Ctrl.PanelesCRUD = $injector.get('CRUD').config({ base_url: '/api/Panel/paneles' });
-
-		Ctrl.CubosCRUD.get().then(function(){
-			Ctrl.getPanels(Ctrl.CubosCRUD.rows[0]);
-		});
-
-		Ctrl.getPanels = function(Cubo){
-			Ctrl.Cubo = Cubo;
-			Ctrl.PanelesCRUD.where(['cubo_id', '=', Cubo.id]).get(['Tipo','Titulo']).then(function(){
-				//Ctrl.openPanel(Ctrl.PanelesCRUD.rows[0]);
-				Ctrl.getFiltros(Ctrl.Cubo);
-			});
-		};
-
-		Ctrl.Panel = null;
-		Ctrl.openPanel = function(Panel){
-			Ctrl.PanelesCRUD.find(Panel.id, Ctrl, 'Panel').then(function(){
-				//Ctrl.testCube();
-				if(Array.isArray(Ctrl.Panel.Config)) Ctrl.Panel.Config = {
-					Filtros: [], Columnas: [], Agrupadores: [], Valores: []
-				};
-				
-				/*$timeout(function() {
-					Ctrl.getPanelData();
-				}, 500);*/
-				
-			});
-		};
-
-		Ctrl.addPanel = function(config){
-			angular.extend(config, {
-				title: 'Agregar Panel',
-				only: ['Titulo']
-			});
-			Ctrl.PanelesCRUD.dialog({
-				cubo_id: Ctrl.Cubo.id,
-				Tipo: 'Table',
-				Config: angular.copy(Ctrl.PanelesConfig['Table']._default)
-			}, config).then(function(newElm){
-				if(!newElm) return false;
-				Ctrl.PanelesCRUD.add(newElm);
-			});
-		};
-
-		Ctrl.deletePanel = function(){
-			Ctrl.PanelesCRUD.delete(Ctrl.Panel).then(function(){
-				Ctrl.Panel = null;
-			});
-		};
-
-		Ctrl.savePanel = function(){
-			Ctrl.PanelesCRUD.update(Ctrl.Panel).then(function(){
-				Rs.showToast('Panel Actualizado', 'Success');
-			});
-		};
-
-		
-
-		Ctrl.openTipoDiag = function(){
-			$mdDialog.show({
-				scope: Ctrl,
-				templateUrl: '/Frag/Paneles.Panel_Details_ChangeTipo',
-				clickOutsideToClose: true,
-				fullscreen: true,
-				multiple: true,
-				preserveScope: true
-			});
-		};
-
-		Ctrl.Cancel = function(){ $mdDialog.cancel(); }
-		Ctrl.changeTipoPanel = function(Tipo){
-			if(Tipo !== Ctrl.Panel.Tipo){
-				Ctrl.Panel.Tipo = Tipo;
-				Ctrl.Panel.Config = angular.copy(Ctrl.PanelesConfig[Tipo]._default);
-				Ctrl.Panel.Data = [];
-
-				$timeout(function() {
-					Ctrl.getPanelData();
-				}, 250);
-			};
-
-			$mdDialog.hide();
-		};
-
-		Ctrl.addConfig = function(DestId, Item){
-
-			console.log(DestId, Item);
-			var Config = Ctrl.PanelesConfig[Ctrl.Panel.Tipo];
-
-			var DefPush = {
-				Columna: Item.Columna,
-				ColumnaTipo: Item.Tipo,
-			};
-
-			//Revisar que no se sobrepasen los límites
-			if( Ctrl.Panel.Config[DestId].length >= Config[DestId].cant ){
-				Rs.showToast('No se puede agregar el campo', 'Error'); return false;
-			};
-
-			//Revisar si se pueden tener duplicados
-			if(!Config[DestId].dupes){
-				if(Rs.found(Item.Columna, Ctrl.Panel.Config[DestId], 'Columna')) return false;
-			};
-
-			if(DestId == 'Filtros'){  Ctrl.Panel.Config.Filtros.push(angular.extend(DefPush, { operador: 'Es', valor: 1 })); };
-			if(DestId == 'Columnas'){ Ctrl.Panel.Config.Columnas.push(angular.extend(DefPush, { show: Item.Columna })); };
-			if(DestId == 'Agrupadores'){ Ctrl.Panel.Config.Agrupadores.push(angular.extend(DefPush, { show: Item.Columna })); };
-			if(DestId == 'Valores'){ Ctrl.Panel.Config.Valores.push(angular.extend(DefPush, { operador: 'Contar', show: 'Contar '+Item.Columna, row_total: 'Total' })); };
-			
-			//Ctrl.getPanelData();
-
-			return false;
-			
-		};
-
-		Ctrl.removeOp = function(DestId, k){
-			console.log(DestId,k);
-			Ctrl.Panel.Config[DestId].splice(k,1);
-			Ctrl.getPanelData();
-		};
-
-		Ctrl.dragControlListeners = {
-			accept: function (sourceItemHandleScope, destSortableScope) { return true; },
-			itemMoved: function (evObj) {
-				var DestId = evObj.dest.sortableScope.element[0].id;
-				var Item = evObj.source.itemScope.modelValue;
-				evObj.dest.sortableScope.removeItem(evObj.dest.index);
-				Ctrl.addConfig(DestId, Item);
-			},
-			clone: true,
-		};
-
-		Ctrl.recieversCtrl = {
-			accept: function(){ return true; }
-		}
-
-		$http.get('/files/PanelesDefConfig.json?date=' + moment().unix()).then(function(r){
-			Ctrl.PanelesConfig = r.data;
-		});
-
-		//Testing
-		Ctrl.testPanel = function(){
-			$mdDialog.show({
-				controller: 'Panel_TestDialogCtrl',
-				templateUrl: '/Frag/Paneles.Panel_TestDialog',
-				locals: { Cubo: Ctrl.Cubo, Panel : Ctrl.Panel },
-				clickOutsideToClose: true,
-				fullscreen: true,
-				multiple: true,
-			});
-		};
-
-		Ctrl.getFiltros = function(Cubo) {
-			return Rs.http('api/Cubos/filtros-values', { Cubo: Cubo }).then(function(f){
-				Ctrl.Cubo.Filtros = f;
-			});	
-		};
-
-		Ctrl.PanelTipo = 'Blank';
-		Ctrl.showPanelPreview = false;
-		Ctrl.getPanelData = function(){
-			Ctrl.Panel.Data = null;
-			Ctrl.PanelTipo = 'Blank';
-			Ctrl.showPanelPreview = true;
-
-			$timeout(function(){
-				Ctrl.PanelTipo = Rs.def(Ctrl.Panel.Tipo, 'Blank');
-
-				Rs.http('api/Panel/get-'+Ctrl.PanelTipo.toLowerCase(), { Panel: Ctrl.Panel, Filtros: Ctrl.Cubo.Filtros }, Ctrl.Panel, 'Data').then(function(){
-					Ctrl.$broadcast('PANEL_DATA_LOADED', { panel_id: Ctrl.Panel.id });
-				});
-
-			}, 250);
-
-			
-		};
-
-
-
-	}
-]);
-angular.module('Panel_PanelBarChartCtrl', [])
-.controller('Panel_PanelBarChartCtrl', ['$scope', '$rootScope', '$timeout', '$window',
-	function($scope, $rootScope, $timeout, $window) {
-		
-		var Ctrl = $scope;
-		var Rs = $rootScope;
-
-		var yAxisLabel = Ctrl.Panel.Config.Valores[0]  ? Ctrl.Panel.Config.Valores[0].show  : '';
-		var xAxisLabel = Ctrl.Panel.Config.Columnas[0] ? Ctrl.Panel.Config.Columnas[0].show : '';
-
-		Ctrl.ChartOps = {
-			chart: {
-                type: 'multiBarHorizontalChart',
-                height: Ctrl.Panel.Config.Op_Altura,
-                duration: 500,
-                stacked: Ctrl.Panel.Config.Op_Apilado,
-                showControls: Ctrl.Panel.Config.Op_Ver_Controles,
-                reduceXTicks: Ctrl.Panel.Config.Op_Reducir_Etiquetas,
-                noData: 'Sin Datos',
-                showLegend: Ctrl.Panel.Config.Op_ShowLegend,
-                useInteractiveGuideline: Ctrl.Panel.Config.Op_Linea_Guia,
-                controlLabels: {
-                    stacked: 'Apilado',
-                    grouped: 'Agrupado'
-                },
-                yAxis: {
-                    axisLabel: yAxisLabel,
-                    tickFormat: d3.format(',.0f')
-                },
-                xAxis: {
-                    axisLabel: xAxisLabel,
-                }
-            },
-		};
-
-		Ctrl.$on('PANEL_DATA_LOADED', function(ev, args){
-			if(args.panel_id == Ctrl.Panel.id){
-				Ctrl.ChartData = Ctrl.Panel.Data;
-				$timeout(function() {
-					Ctrl.ChartApi.refresh();
-				}, 100);
-			};
-		});
-
-		//
-
-
-	}
-]);
-angular.module('Panel_PanelColChartCtrl', [])
-.controller('Panel_PanelColChartCtrl', ['$scope', '$rootScope', '$timeout', '$window',
-	function($scope, $rootScope, $timeout, $window) {
-		
-		var Ctrl = $scope;
-		var Rs = $rootScope;
-
-		var yAxisLabel = Ctrl.Panel.Config.Valores[0]  ? Ctrl.Panel.Config.Valores[0].show  : '';
-		var xAxisLabel = Ctrl.Panel.Config.Columnas[0] ? Ctrl.Panel.Config.Columnas[0].show : '';
-
-		Ctrl.ChartOps = {
-			chart: {
-                type: 'multiBarChart',
-                height: Ctrl.Panel.Config.Op_Altura,
-                duration: 500,
-                stacked: Ctrl.Panel.Config.Op_Apilado,
-                showControls: Ctrl.Panel.Config.Op_Ver_Controles,
-                reduceXTicks: Ctrl.Panel.Config.Op_Reducir_Etiquetas,
-                noData: 'Sin Datos',
-                showLegend: Ctrl.Panel.Config.Op_ShowLegend,
-                useInteractiveGuideline: Ctrl.Panel.Config.Op_Linea_Guia,
-                controlLabels: {
-                	stacked: 'Apilado',
-                	grouped: 'Agrupado'
-                },
-                yAxis: {
-                    axisLabel: yAxisLabel,
-                    tickFormat: d3.format(',.0f')
-                },
-                xAxis: {
-                    axisLabel: xAxisLabel,
-                }
-            },
-		};
-
-		Ctrl.$on('PANEL_DATA_LOADED', function(ev, args){
-			if(args.panel_id == Ctrl.Panel.id){
-				Ctrl.ChartData = Ctrl.Panel.Data;
-				$timeout(function() {
-					Ctrl.ChartApi.refresh();
-				}, 100);
-			};
-		});
-
-		//
-
-
-	}
-]);
-angular.module('Panel_PanelDataTableCtrl', [])
-.controller('Panel_PanelDataTableCtrl', ['$scope', '$rootScope', 
+angular.module('PQRS__PQRSCtrl', [])
+.controller('PQRS__PQRSCtrl', ['$scope', '$rootScope', 
 	function($scope, $rootScope) {
 
-		console.info('Panel_PanelDataTableCtrl');
+		console.info('PQRS__PQRSCtrl');
+		var Ctrl = $scope;
+		var Rs = $rootScope;
+
+		
+		Ctrl.Hoy = moment().toDate();
+
+		//var Desde = moment().add('-2', 'months').toDate();
+		var Desde = moment('2018-01-01', 'YYYY-MM-DD').toDate();
+		var Hasta = moment().toDate();
+
+		var DefFilters = {
+			Fecha_Radicado: [ Desde, Hasta ],
+			Formato: false,
+			
+			Fecha_Respuesta: [ false, false ],
+			Tipificacion: false,
+			Subtipificacion: false,
+			Canal: false,
+			Favorabilidad: false,
+
+			Tipo_Cre: false,
+			Nombre: '',
+			Nro_Credito: '',
+			Descripcion: '',
+		};
+
+		Ctrl.downloadUrl = false;
+
+		Ctrl.query = {
+			limit: 20,
+			page: 1,
+		};
+
+		Ctrl.limitOps = [ 20, 50, 100 ];
+
+		Ctrl.Subtipificaciones = [
+			'CONFIRMACIÓN PROCESO DE LEVANTAMIENTO DE PRENDA',
+			'APLICACIÓN DE ABONO A REDUCE CUOTA',
+			'SOLICITUD VALOR DE LA CUOTA MENSUAL A PAGAR',
+			'SOLICITUD DEL SALDO TOTAL ADEUDADO',
+			'SOLICITUD LEVANTAMIENTO DE PRENDA',
+			'DETALLE DEL PAGO REALIZADO DE LA CUOTA MENSUAL - CONCEPTOS',
+		];
+
+		Ctrl.Canales = [
+			'LLAMADA',
+			'CORREO',
+		];
+
+		Ctrl.Favorabilidad = [
+			'LA ENTIDAD',
+			'DEL CLIENTE',
+			'N/A'
+		];
+
+
+		//Obtener
+		Ctrl.Headers = false;
+		Ctrl.firstLoad = false;
+
+		Ctrl.getRows = (reset) => {
+			if(Ctrl.loading) return;
+
+			Ctrl.firstLoad = true;
+
+			if(reset){
+				Ctrl.query.page = 1;
+				Ctrl.downloadUrl = false;
+			};
+
+			//Ctrl.Rows = false;
+			Ctrl.loading = true;
+			Rs.http('api/PQRS', { 'filters' : Ctrl.filters, 'query': Ctrl.query }, Ctrl, 'Rows').then(() => {
+				if(!Ctrl.Headers && Ctrl.Rows.data.length > 0){
+					Ctrl.Headers = Object.keys(Ctrl.Rows.data[0]);
+					//Ctrl.downloadCSV();
+				};
+
+				Ctrl.loading  = false;
+			});
+		};
+
+		Ctrl.prepPag = (page, limit) => {
+			Ctrl.getRows(false);
+		};
+
+
+		//Ctrl.getRows();
+
+		Ctrl.resetFilters = () => {
+			//Ctrl.firstLoad = false;
+			Ctrl.filters = angular.copy(DefFilters);
+		};
+		Ctrl.resetFilters();
+
+
+		Ctrl.creatingCSV = false;
+		Ctrl.downloadCSV = () => {
+			if(Ctrl.creatingCSV) return;
+
+			Ctrl.creatingCSV = true;
+			Rs.http('api/PQRS/create-csv', { 'filters' : Ctrl.filters, 'query': Ctrl.query }).then((d) => {
+				console.log(d);
+				Ctrl.downloadUrl = d;
+				Ctrl.creatingCSV = false;
+			});
+
+		};
+
+		//Ctrl.getRows(true);
+
+
+	}
+]);
+angular.module('Validaciones__ValidacionDiagCtrl', [])
+.controller('Validaciones__ValidacionDiagCtrl', ['$scope', '$rootScope', '$http', '$mdDialog', '$filter', 'Validacion', 'Causales',
+	function($scope, $rootScope, $http, $mdDialog, $filter, Validacion, Causales) {
+
+		console.info('Validaciones__ValidacionDiagCtrl');
 		var Ctrl = $scope;
 		var Rs = $rootScope;
 	
-		Ctrl.$on('PANEL_DATA_LOADED', function(ev, args){
-			if(args.panel_id == Ctrl.Panel.id){
-				Ctrl.C = {
-					'children': Ctrl.Panel.Data.Rows
-				};
-				Ctrl.Columns = Ctrl.Panel.Data.Columns;
-				Ctrl.Totals = Ctrl.Panel.Data.Totals;
-			};
-		});
-
-		Ctrl.showChild = function(C){
-			C.show = C.children ? (C.show = !C.show) : false;
-		};
-	}
-]);
-angular.module('Panel_PanelPieChartCtrl', [])
-.controller('Panel_PanelPieChartCtrl', ['$scope', '$rootScope', '$timeout', '$window',
-	function($scope, $rootScope, $timeout, $window) {
-		
-		var Ctrl = $scope;
-		var Rs = $rootScope;
-
-		Ctrl.ChartOps = {
-			chart: {
-                type: 'pieChart',
-                x: function(d){ return d.key;   },
-                y: function(d){ return d.value; },
-                height: Ctrl.Panel.Config.Op_Altura,
-                showLabels: Ctrl.Panel.Config.Op_ShowLabels,
-                duration: 500,
-                labelThreshold: 0.025,
-                labelSunbeamLayout: Ctrl.Panel.Config.Op_SunbeamLabels,
-                noData: 'Sin Datos',
-                showLegend: Ctrl.Panel.Config.Op_ShowLegend,
-                labelsOutside: Ctrl.Panel.Config.Op_OutsideLabels,
-                labelType: function(a,b,c){
-                	var label = c.key;
-                	var percent = d3.format('.0%')((a.endAngle - a.startAngle) / (2 * Math.PI));
-                	switch(Ctrl.Panel.Config.Op_LabelType){
-                		case 'keypercent': 	label = c.key + ' (' + percent + ')'; break;
-                		case 'keyvalue': 	label = c.key + ': ' + d3.format(',.0f')(c.value); break;
-                		case 'value': 		label = d3.format(',.0f')(c.value); break;
-                		case 'percent': 	label = percent; break;
-                		case 'all': 		label = c.key + ': ' + d3.format(',.0f')(c.value) + ' (' + percent + ')'; break;
-                	};
-                	return label;
-                },
-                valueFormat: d3.format(',.0f'),
-                pie:{
-                	margin: {   
-						top: 	Ctrl.Panel.Config.Op_Margenes[0], 
-						right: 	Ctrl.Panel.Config.Op_Margenes[1], 
-						bottom: Ctrl.Panel.Config.Op_Margenes[2], 
-						left: 	Ctrl.Panel.Config.Op_Margenes[3]
-					}
-                }
-            },
-		};
-
-		Ctrl.$on('PANEL_DATA_LOADED', function(ev, args){
-			if(args.panel_id == Ctrl.Panel.id){
-				Ctrl.ChartData = Ctrl.Panel.Data;
-				$timeout(function() {
-					Ctrl.ChartApi.refresh();
-				}, 100);
-			};
-		});
-
-
-	}
-]);
-angular.module('Panel_PanelTableCtrl', [])
-.controller('Panel_PanelTableCtrl', ['$scope', '$rootScope',
-	function($scope, $rootScope) {
-
-		console.info('Panel_PanelTableCtrl');
-		var Ctrl = $scope;
-		var Rs = $rootScope;
-
-		//Opcion de filas por página
-		if(!('Op_Filas' in Ctrl.Panel.Config) || Ctrl.Panel.Config.Op_Filas == null || Ctrl.Panel.Config.Op_Filas < 1 ){
-			Ctrl.FilasxPag = 10;
-		}else{
-			Ctrl.FilasxPag = Ctrl.Panel.Config.Op_Filas;
-		};
-
-		Ctrl.Pagina = 1;
-
-		Ctrl.prep = function(){
-			Ctrl.Paginas = Math.ceil(Ctrl.Panel.Data.length / Ctrl.FilasxPag);
-			Ctrl.makeFilas();
-		};
-
-		Ctrl.prev = function(){ Ctrl.Pagina--; Ctrl.makeFilas(); };
-		Ctrl.next = function(){ Ctrl.Pagina++; Ctrl.makeFilas(); };
-		Ctrl.makeFilas = function() { Ctrl.fromFilas = (Ctrl.Pagina-1) * Ctrl.FilasxPag; Ctrl.toFilas = Math.min(Ctrl.Pagina * Ctrl.FilasxPag, Ctrl.Panel.Data.length); };
-
-		Ctrl.$on('PANEL_DATA_LOADED', function(ev, args){
-			if(args.panel_id == Ctrl.Panel.id){
-				Ctrl.prep();
-			};
-		});
-
-	}
-]);
-angular.module('Panel_TestDialogCtrl', [])
-.controller('Panel_TestDialogCtrl', ['$scope', '$rootScope', '$http', '$mdDialog', 'Cubo', 'Panel',
-	function($scope, $rootScope, $http, $mdDialog, Cubo, Panel) {
-
-		var Ctrl = $scope;
-		var Rs = $rootScope;
-
-		Ctrl.Cubo  = angular.copy(Cubo);
-		Ctrl.Panel = angular.copy(Panel);
-
+		Ctrl.Title = 'Nueva Validación';
 		Ctrl.Cancel = function(){ $mdDialog.cancel(); }
 
-		Ctrl.getFiltros = function() {
-			return Rs.http('api/Cubos/filtros-values', { Cubo: Cubo }).then(function(f){
-				Ctrl.Cubo.Filtros = f;
-				Ctrl.getPanel();
-			});	
+		//Parámetros
+		Ctrl.range = Rs.range;
+		Ctrl.Val = {
+			Numero: '',
+			Estado: 'Pendiente',
+			causal_id: null,
+			TipoDoc: 'CC',
+			Doc: '',
+			FechaNacimiento: null,
+			SeguroCuota: null,
+			edad: 0,
+			TipoVehiculo: 'Particular',
+			FechaCifin: moment().toDate(),
+			diascifin: 0,
+		};
+		Ctrl.IngresoHora = 0;
+		Ctrl.IngresoMin = 0;
+		Ctrl.TiposDoc = ['CC','NIT'];
+		Ctrl.Hoy = moment().toDate();
+		Ctrl.mimimumAge = moment().add(-18, 'years').toDate();
+		Ctrl.new = true;
+		Ctrl.Comentarios = [];
+		Ctrl.newComment = '';
+		Ctrl.seguroCuotaOps = {
+			Si: 'SI TIENE, seguro de cuota',
+			No: 'NO TIENE, seguro de cuota',
+		};
+		Ctrl.tiposVehiculos = {
+			Particular: { Nombre: 'Particular',  DiasMaxCifin: 45 },
+			Publico: {    Nombre: 'Público',     DiasMaxCifin: 60 },
+		};
+		Ctrl.estadosVal = {
+			Pendiente: { color: 'bg-black-2' },
+			Devuelta: { color: 'bg-red' },
+			Avanzada: { color: 'bg-green' },
+			Desembolsada: { color: 'bg-gold text-black' },
+		}; 
+		Ctrl.canMarkPendiente = true;
+		Ctrl.canMarkDevuelta = true;
+		Ctrl.canMarkAvanzada = true;
+		Ctrl.canMarkDesembolsada = true;
+
+		Ctrl.explodeIngresoDate = () => {
+			var IngresoDate = moment(Ctrl.Val.Ingreso);
+			Ctrl.IngresoHora = IngresoDate.hours();
+			Ctrl.IngresoMin  = IngresoDate.minutes();
 		};
 
-		Ctrl.getPanel = function(){
-			Ctrl.Panel.Data = null;
-			Rs.http('api/Panel/get-'+Ctrl.Panel.Tipo.toLowerCase(), { Panel: Ctrl.Panel, Filtros: Ctrl.Cubo.Filtros }, Ctrl.Panel, 'Data').then(function(){
-				Ctrl.$broadcast('PANEL_DATA_LOADED', { panel_id: Ctrl.Panel.id });
+		Ctrl.implodeIngresoDate = () => {
+			var IngresoDate = moment(Ctrl.Val.Ingreso);
+			IngresoDate.utc().hours(Ctrl.IngresoHora);
+			IngresoDate.utc().minutes(Ctrl.IngresoMin);
+
+			Ctrl.Val.Ingreso = IngresoDate.toDate();
+		};
+
+		Ctrl.calcEdad = () => {
+			Ctrl.Val.edad = Ctrl.Val.FechaNacimiento ? moment().diff(moment(Ctrl.Val.FechaNacimiento), 'years', false) : 0;
+			Ctrl.Val.SeguroCuota = (Ctrl.Val.edad > 69) ? 'Si' : null;
+
+			Ctrl.verifier();
+		};
+
+		Ctrl.calcCifin = () => {
+			Ctrl.Val.diascifin = moment().diff(moment(Ctrl.Val.FechaCifin), 'days', false);
+			Ctrl.blockCifin = (Ctrl.Val.diascifin > Ctrl.tiposVehiculos[Ctrl.Val.TipoVehiculo]['DiasMaxCifin']);
+
+			Ctrl.verifier();
+		};
+
+		Ctrl.verifier = () => {
+			
+			//Botones disponibles
+			var canAdvance = (Ctrl.Val.SeguroCuota == null || Ctrl.Val.SeguroCuota == 'No') 
+						  && (Ctrl.blockCifin == false)
+						  && (Ctrl.Val.causal_id == null);
+			Ctrl.canMarkAvanzada = canAdvance;
+			Ctrl.canMarkDevuelta = (Ctrl.Val.causal_id !== null);
+			Ctrl.canMarkDesembolsada = canAdvance && (Ctrl.Val.Estado == 'Avanzada');
+		};
+
+
+		
+		Ctrl.searchCausales = (searchText) => {
+			return $filter('filter')(Causales, searchText);
+		};
+
+		Ctrl.CausalSelChange = (CausalSel) => {
+			Ctrl.Val.causal_id = (typeof CausalSel == 'undefined') ? null : CausalSel.id;
+		};
+
+		Ctrl.check = () => {
+			if(Ctrl.Val.Numero.trim().length == 0){ Rs.showToast('Falta el número de solicitud', 'Error'); return false; }
+			if(Ctrl.Val.Doc.trim().length == 0){ Rs.showToast('Falta documento del cliente', 'Error'); return false; }
+			if(Ctrl.Val.TipoDoc == 'NIT'){
+				Ctrl.Val.FechaNacimiento = null;
+			}else{
+				if(Ctrl.Val.FechaNacimiento == null){ Rs.showToast('Falta fecha de nacimiento del cliente', 'Error'); return false; }
+			};
+
+			return true;
+		};
+
+
+
+		Ctrl.mark = (Estado) => {
+			var checked = Ctrl.check();
+			if(!checked) return false;
+
+			Rs.http('api/Validaciones/save', { Estado: Estado, Validacion: Ctrl.Val }).then(() => {
+				$mdDialog.hide();
 			});
 		};
 
-		Ctrl.getFiltros();
+		Ctrl.terminate = (mode) => {
+			Rs.Confirm({
+				Titulo: '¿Marcar esta validación como '+mode+'?',
+				Detail: 'Cerrar atención',
+				Buttons: [
+					{ Text: 'Terminar', Class: 'md-raised md-danger', Value: true }
+				],
+			}).then((confirmed) => {
+				if(confirmed){
+					Ctrl.mark(mode);
+				};
+			});
+		}
+
+
+		//Comentarios
+		Ctrl.addComment = () => {
+			var newComment = Ctrl.newComment.trim();
+			if(newComment.length == 0) return;
+
+			Rs.http('api/Validaciones/add-comentario', { Validacion: Ctrl.Val, newComment: newComment }).then((c) => {
+				Ctrl.Comentarios.unshift(c);
+				Ctrl.newComment = '';
+			});
+		};
+
+		Ctrl.$watchGroup([
+			'Val.FechaNacimiento',
+		], Ctrl.calcEdad);
+
+		Ctrl.$watchGroup([
+			'Val.FechaCifin',
+			'Val.TipoVehiculo',
+		], Ctrl.calcCifin);
+
+		Ctrl.$watchGroup([
+			'Val.SeguroCuota',
+			'Val.causal_id',
+		], Ctrl.verifier);
+
+		//Si no es nuevo
+		if(Validacion !== null){
+			Ctrl.Val = angular.copy(Validacion);
+			Ctrl.new = false;
+			Ctrl.CausalSel = $filter('filter')(Causales, { id: Ctrl.Val.causal_id })[0];
+
+			Rs.log('USUARIO.ESTADO', 'Validando', Ctrl.Val.id, Ctrl.Val.Estado).then(() => {
+				Ctrl.explodeIngresoDate();
+				Rs.http('api/Validaciones/comentarios', { validacion_id: Ctrl.Val.id }, Ctrl, 'Comentarios');
+			});
+			
+		}else{
+			Rs.http('api/Validaciones/create', { Validacion: Ctrl.Val }).then((r) => {
+				Ctrl.Val = r;
+				Ctrl.new = false;
+				Ctrl.explodeIngresoDate();
+			});
+		};
+
+	}
+]);
+angular.module('Validaciones__ValidacionesCtrl', [])
+.controller('Validaciones__ValidacionesCtrl', ['$scope', '$rootScope', '$http', '$mdDialog', '$injector',
+	function($scope, $rootScope, $http, $mdDialog, $injector) {
+
+		console.info('Validaciones__ValidacionesCtrl');
+		var Ctrl = $scope;
+		var Rs = $rootScope;
+	
+		Ctrl.Title = 'Titulo';
+		Ctrl.Cancel = function(){ $mdDialog.cancel(); }
+
+		Ctrl.EstadosUsuario = [
+			{ Nombre: 'Activo', 	Color: '#01a727' }, 
+			{ Nombre: 'Baño',      	Color: '#d66702' },
+			{ Nombre: 'Brake',     	Color: '#bb069a' },
+			{ Nombre: 'Almuerzo',  	Color: '#bd9804' },
+		];
+
+		Ctrl.EstadoUsuario = 'Activo';
+
+		Ctrl.filterNavOpen = true;
+		Ctrl.Hoy = moment().toDate();
+		Ctrl.Desde = moment().add(-1, 'months').toDate();
+		Ctrl.Hasta = angular.copy(Ctrl.Hoy);
+		Ctrl.Estado = 'Pendientes';
+		Ctrl.TipoCliente = 'Todos';
+		Ctrl.CausalFilter = false;
+		Ctrl.NumeroFilter = '';
+
+		//Validaciones
+		Ctrl.ValidacionesCRUD = $injector.get('CRUD').config({ 
+			base_url: '/api/Validaciones',
+			order_by: ['-id'],
+			query_scopes: [ 
+				[ 'usuario', Rs.Usuario.Id ],
+				[ 'entre',   [] ],
+				[ 'estado',  'Pendientes' ],
+				[ 'causal',  false ],
+			],
+			add_append: 'refresh',
+			limit: 1000
+		});
+
+		Ctrl.getValidaciones = () => {
+			Ctrl.ValidacionesCRUD.setScope('entre', [ moment(Ctrl.Desde).format('YYYY-MM-DD'), Ctrl.Hasta ]);
+			Ctrl.ValidacionesCRUD.setScope('estado', Ctrl.Estado );
+			Ctrl.ValidacionesCRUD.setScope('tipocliente', Ctrl.TipoCliente );
+			Ctrl.ValidacionesCRUD.setScope('causal', Ctrl.CausalFilter );
+			Ctrl.ValidacionesCRUD.setScope('numero', Ctrl.NumeroFilter );
+			Ctrl.ValidacionesCRUD.get();
+		};
+
+		Ctrl.validacionDiag = (Obj) => {
+			$mdDialog.show({
+				controller:  'Validaciones__ValidacionDiagCtrl',
+				templateUrl: 'Frag/Validaciones.ValidacionDiag',
+				locals: 	{ Validacion: Obj, Causales: Ctrl.Causales },
+				clickOutsideToClose: false,
+				escapeToClose: false,
+				fullscreen:  true,
+				multiple: 	 true
+			}).then(() => {
+				Ctrl.getValidaciones();
+			});
+		};
+
+		Rs.http('api/Validaciones/causales', {}, Ctrl, 'Causales').then(() => {
+			//Ctrl.validacionDiag(null);
+			Ctrl.getValidaciones();
+		});
+
+
+		Ctrl.estadoUsuarioChange = () => {
+			Rs.log('USUARIO.ESTADO', Ctrl.EstadoUsuario);
+		};
+		Ctrl.estadoUsuarioChange();
+		
 
 	}
 ]);
@@ -1561,13 +1187,19 @@ angular.module('CRUD', [])
 				loading: false,
 				obj: null,
 				only_columns: [],
-				add_append: 'end'
+				add_append: 'end',
+				add_research: false,
+				add_with: false,
+				query_scopes: [],
+				query_with: [],
+				order_by: [],
 			};
 			t.columns = [];
 			t.rows = [];
 
 			angular.extend(t.ops, ops);
-			//console.info('Crud initiated', t.ops.base_url);
+
+			//console.info('Crud initiated', t.ops);
 
 			t.get = function(columns){
 				
@@ -1606,6 +1238,7 @@ angular.module('CRUD', [])
 					if(t.ops.add_append == 'end'){ t.rows.push(r); }
 					else if(t.ops.add_append == 'start'){ t.rows.unshift(r); }
 					else if(t.ops.add_append == 'refresh'){ t.get(); };
+					return r;
 				});
 			};
 
@@ -1614,6 +1247,7 @@ angular.module('CRUD', [])
 				return Rs.http(t.ops.base_url, { fn: 'update', ops: t.ops }).then(function(r) {
 					t.ops.obj = null;
 					Rs.updateArray(t.rows, r, t.ops.primary_key);
+					return r;
 				});
 			};
 
@@ -1657,13 +1291,25 @@ angular.module('CRUD', [])
 				});
 			};
 
-
+			//Poner un scope
+			t.setScope = (Scope, Params) => {
+				var Index = -1;
+				angular.forEach(t.ops.query_scopes, ($S, $k) => {
+					if($S[0] == Scope){ Index = $k; return; }
+				});
+				if(Index == -1){
+					t.ops.query_scopes.push([ Scope, Params ]);
+				}else{
+					t.ops.query_scopes[Index] = [ Scope, Params ];
+				};
+			};
 
 
 		};
 
 		return {
 			config: function (ops) {
+				//console.log('Creating', ops);
 				var DaCRUD = new CRUD(ops);
 				return DaCRUD;
 			}
@@ -1768,6 +1414,16 @@ angular.module('Filters', [])
 		return function(n) {
 			if(typeof n !== 'number') return n;
 			return n.toFixed().replace(/(\d)(?=(\d{3})+(,|$))/g, '$1,');
+		}
+	}).filter('datediff', function() {
+		return function(d,period) {
+			if(!d) return 0;
+			return moment().diff(moment(d), period, false);
+		}
+	}).filter('dateformat', function() {
+		return function(d,format) {
+			if(!d) return d;
+			return moment(d).format(format);
 		}
 	});
 
@@ -1990,16 +1646,18 @@ angular.module('App', [
 	'ngStorage',
 	'ngMaterial',
 	'ngSanitize',
+	'ngAnimate',
 
 	'md.data.table',
-	'ngFileUpload',
+	//'ngFileUpload',
 	'angular-loading-bar',
-	'angularResizable',
-	'nvd3',
+	//'angularResizable',
+	//'nvd3',
 	'ui.utils.masks',
-	'as.sortable',
+	//'as.sortable',
 	'ngCsv',
-	'angular-clipboard',
+	//'angular-clipboard',
+	//'ui.ace',
 
 	'appRoutes',
 	'appConfig',
@@ -2021,22 +1679,15 @@ angular.module('App', [
 	'ListSelectorCtrl',
 
 	'MainCtrl',
+	'SiteCtrl',
 	'LoginCtrl',
 
-	'CubosCtrl',
-		'Cubo_TestDialogCtrl',
-	'PanelesCtrl',
-		'Panel_TestDialogCtrl',
-		'Panel_PanelTableCtrl',
-		'Panel_PanelDataTableCtrl',
-		'Panel_PanelPieChartCtrl',
-		'Panel_PanelColChartCtrl',
-		'Panel_PanelBarChartCtrl',
-	'InformesCtrl',
-		'InformeViewerCtrl',
+	'PQRS__PQRSCtrl',
 	'ConfiguracionCtrl',
 		'Configuracion__UsuariosCtrl',
-		'Configuracion__PermisosCtrl',
+		'Configuracion__PerfilesCtrl',
+	'Validaciones__ValidacionesCtrl',
+		'Validaciones__ValidacionDiagCtrl',
 	
 ]);
 angular.module('appConfig', [])
@@ -2134,7 +1785,7 @@ angular.module('appConfig', [])
 			return m.isValid() ? m.toDate() : new Date(NaN);
 		};
 		$mdDateLocaleProvider.formatDate = function(date) {
-			if(typeof date == 'undefined' || date === null || isNaN(date.getTime()) ){
+			if(!date || typeof date == 'undefined' || date === null || isNaN(date.getTime()) ){
 				return null;
 			}else{
 				return moment(date).format('L');
@@ -2187,8 +1838,8 @@ angular.module('appConfig', [])
  * green, light-green, lime, yellow, amber, orange, deep-orange, brown, grey, blue-grey
  */
 angular.module('appFunctions', [])
-.factory('appFunctions', [ '$rootScope', '$http', '$mdDialog', '$mdSidenav', '$mdToast', '$q', '$state', '$location', '$filter', 
-	function($rootScope, $http, $mdDialog, $mdSidenav, $mdToast, $q, $state, $location, $filter){
+.factory('appFunctions', [ '$rootScope', '$http', '$mdDialog', '$mdSidenav', '$mdToast', '$q', '$state', '$location', '$filter', '$timeout',
+	function($rootScope, $http, $mdDialog, $mdSidenav, $mdToast, $q, $state, $location, $filter, $timeout){
 
 		var Rs = $rootScope;
 
@@ -2199,11 +1850,20 @@ angular.module('appFunctions', [])
 			Rs.State.tabSelected = 0;
 
 			if(Rs.State.route.length > 2){
-				Rs.State.tabSelected = Rs.Sections[Rs.State.route[2]]['No'];
+				if(Rs.Sections[Rs.State.route[2]]){
+					Rs.State.tabSelected = Rs.Sections[Rs.State.route[2]]['No'];
+				}else{
+					$state.go('Login');
+				}
 			};
 
 		};
-		Rs.navTo = function(Dir, params){ $state.go(Dir, params); };
+		Rs.navTo = function(Dir, params){ 
+			$timeout(()=> {
+				$state.go(Dir, params);
+			}, 300);
+			
+		};
 		Rs.Refresh = function() { $state.go($state.current, $state.params, {reload: true}); };
 
 
@@ -2212,6 +1872,15 @@ angular.module('appFunctions', [])
 		//Helpers
 		Rs.def = function(arg, def) {
 			return (typeof arg == 'undefined' ? def : arg);
+		};
+
+		Rs.range = function(min, max, step) {
+			step = step || 1;
+			var input = [];
+			for (var i = min; i <= max; i += step) {
+			    input.push(i);
+			}
+			return input;
 		};
 
 		Rs.getSize = function(obj) {
@@ -2261,7 +1930,7 @@ angular.module('appFunctions', [])
 			var Found = false;
 
 			if(typeof needle == 'undefined') return false;
-			console.log(needle, haysack, key);
+			//console.log(needle, haysack, key);
 
 			angular.forEach(haysack, function(elm){
 				if(elm[key].toUpperCase().trim() == needle.toUpperCase().trim()){
@@ -2347,6 +2016,8 @@ angular.module('appFunctions', [])
 				position: Position
 			});
 		};
+
+
 
 
 
@@ -2468,6 +2139,108 @@ angular.module('appFunctions', [])
 
 
 
+		//Local Funcs
+		Rs.downloadChart = (P) => {
+            $Elm = $("#Panel_" + P.id + " svg");
+            saveSvgAsPng($Elm[0], P.Titulo+".png");
+            Rs.showToast('Descargando Gráfica');
+        };
+
+        const addCatData = (Cat, Arr, Data) => {
+        	Arr.push(Cat.categoria);
+        	if(Cat.children){
+        		Cat.children.forEach((c) => {
+        			myArr = angular.copy(Arr);
+        			addCatData(c, myArr, Data);
+        		});
+        	}else{
+        		Cat.valores.forEach((v) => { Arr.push(v); });
+        		Data.push(Arr);
+        	};
+        };
+
+        Rs.downloadData = (P) => {
+        	
+        	var Headers = [];
+        	var Data = [];
+
+        	console.log(P);
+        	if(P.Tipo == 'Table'){
+        		var Headers = P.Config.Columnas.map((C) => { return C.show });
+        		var Data 	= P.Data;
+        	}else if(P.Tipo == 'DataTable'){
+        		P.Config.Agrupadores.forEach((A) => { Headers.push(A.show); });
+        		P.Data.Columns.forEach((C) => { Headers.push(C.filter_val + ' ' + C.show); });
+        		P.Data.Rows.forEach((R) => {
+        			addCatData(R, [], Data);
+        		});
+        	}else if(P.Tipo == 'DataValue'){
+        		Headers.push(P.Config.Valores[0].show);
+        		Data.push([ P.Data.value ]);
+        	}else if(P.Tipo == 'PieChart'){
+        		Headers.push(P.Config.Agrupadores[0].show);
+        		Headers.push(P.Config.Valores[0].show);
+        		P.Data.forEach((D) => {
+        			Data.push([ D.key, D.value ]);
+        		});
+        	}else if(P.Tipo == 'LineChart'){
+        		Headers.push(P.Config.Columnas[0].show);
+        		P.Data.Series.forEach((S) => { Headers.push(S.key); });
+        		P.Data.ColumnaValues.forEach((C, kC) => {
+        			var Row = []; Row.push(C);
+        			P.Data.Series.forEach((S) => { Row.push(S.values[kC].y); });
+        			Data.push(Row);
+        		});
+        	}else if(Rs.inArray(P.Tipo, ['BarChart', 'ColChart'])){
+        		Headers.push(P.Config.Columnas[0].show);
+        		var ColumnaValues = [];
+        		P.Data.forEach((S, kS) => { 
+        			Headers.push(S.key);
+        			if(kS == 0){ S.values.forEach((v) => { ColumnaValues.push(v.x) }); };
+        		});
+        		ColumnaValues.forEach((C, kC) => {
+        			var Row = []; Row.push(C);
+        			P.Data.forEach((S) => { Row.push(S.values[kC].y); });
+        			Data.push(Row);
+        		});
+
+        	};
+
+        	//console.log(Headers, Data); return;
+
+        	Rs.showToast('Descargando...');
+        	Data.unshift(Headers);
+        	Data = Data.map((Row) => { return JSON.stringify(Row); }).join("\n").replace(/(^\[)|(\]$)/mg, '');
+
+        	//console.log(Data); return;
+
+        	var content = new Blob([Data], { type: 'text/csv;charset=utf-8' });
+        	var filename = P.Titulo+'.csv';
+        	saveAs(content, filename);
+
+        };
+
+
+
+        Rs.log = (key, val1, val2, val3, datos) => {
+
+			var val1 = Rs.def(val1, null);
+			var val2 = Rs.def(val2, null);
+			var val3 = Rs.def(val3, null);
+			var datos = Rs.def(datos, []);
+
+			var defLog = {
+				usuario_id: Rs.Usuario.Id,
+				key: key,
+				val1: val1,
+				val2: val2,
+				val3: val3,
+				datos: datos
+			};
+
+			return Rs.http('log', defLog);
+		};
+
 
 
 
@@ -2479,41 +2252,43 @@ angular.module('appRoutes', [])
 	function($stateProvider, $urlRouterProvider, $httpProvider){
 	
 			$stateProvider
-					.state('Login', {
-						url: '/Login',
-						templateUrl: '/Login',
-						controller: 'LoginCtrl',
-					})
-					.state('Home', {
-						url: '/Home',
-						templateUrl: '/Home',
-						controller: 'MainCtrl',
-						resolve: {
-							promiseObj:  function($http){
-								return $http({method: 'POST', url: 'api/Usuarios/check-token'});
-							},
-							controller: function($rootScope, promiseObj){
-								var Rs = $rootScope;
-			
-								Rs.Usuario 	= promiseObj.data.Usuario;
-								Rs.Sections = promiseObj.data.Secciones;
-								Rs.Opts 	= promiseObj.data.Opts;
-							}
+				.state('Site', {
+					url: '/Site',
+					templateUrl: '/Site',
+					controller: 'SiteCtrl',
+				})
+				.state('Login', {
+					url: '/Login',
+					templateUrl: '/Login',
+					controller: 'LoginCtrl',
+				})
+				.state('Home', {
+					url: '/Home',
+					templateUrl: '/Home',
+					controller: 'MainCtrl',
+					resolve: {
+						promiseObj:  function($http){
+							return $http({method: 'POST', url: 'api/Usuarios/check-token'});
 						},
-					})
-					.state('Home.Section', {
-						url: '/:section',
-						templateUrl: function (params) { return '/Home/'+params.section; },
-					})
-					.state('Home.Section.Subsection', {
-						url: '/:subsection',
-						templateUrl: function (params) { return '/Home/'+params.section+'/'+params.subsection; },
-					}).state('I', {
-						url: '/I/:Informe',
-						templateUrl: '/I'
-					});
+						controller: function($rootScope, promiseObj){
+							var Rs = $rootScope;
+		
+							Rs.Usuario 	= promiseObj.data.Usuario;
+							Rs.Sections = promiseObj.data.Secciones;
+							Rs.Opts 	= promiseObj.data.Opts;
+						}
+					},
+				})
+				.state('Home.Section', {
+					url: '/:section',
+					templateUrl: function (params) { return '/Home/'+params.section; },
+				})
+				.state('Home.Section.Subsection', {
+					url: '/:subsection',
+					templateUrl: function (params) { return '/Home/'+params.section+'/'+params.subsection; },
+				});
 
-			$urlRouterProvider.otherwise('/Home');
+			$urlRouterProvider.otherwise('/Site');
 			
 
 			$httpProvider.interceptors.push(['$q', '$localStorage', 
@@ -2533,8 +2308,8 @@ angular.module('appRoutes', [])
 						  // do something on error
 
 						  if ([400, 401].indexOf(rejection.status) !== -1) {
-							var r = confirm("Su sesión expiró, por favor ingrese nuevamente");
-							location.replace("/#/Login");
+							//var r = confirm("Su sesión expiró, por favor ingrese nuevamente");
+							//location.replace("/#/Login");
 						  }
 
 						  return $q.reject(rejection);

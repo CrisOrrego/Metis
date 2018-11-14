@@ -56,5 +56,11 @@ class MainController extends Controller
 		return Hash::make($Pass);
 	}
 
+	public function log()
+	{
+		extract(request()->all());
+		addlog($usuario_id, $key, $val1, $val2, $val3, $datos);
+	}
+
 
 }

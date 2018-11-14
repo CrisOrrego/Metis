@@ -15,11 +15,55 @@ md-input-container.md-Snow_White-theme:not(.md-input-invalid).md-input-focused l
 md-input-container.md-Snow_White-theme:not(.md-input-invalid).md-input-focused md-icon {
   color: rgba(0, 0, 0, 0.8);
 }
+md-menu-content md-menu-item .md-button {
+  color: #4c4c4c !important;
+}
 md-tabs.md-Snow_White-theme .md-tab.md-active,
 md-tabs.md-Snow_White-theme .md-tab.md-active md-icon,
 md-tabs.md-Snow_White-theme .md-tab.md-focused,
 md-tabs.md-Snow_White-theme .md-tab.md-focused md-icon {
   color: #000000 !important;
+}
+md-select.md-Valak-theme .md-select-icon,
+.md-Valak-theme,
+md-icon.md-Valak-theme {
+  color: rgba(255, 255, 255, 0.54);
+}
+md-input-container.md-Valak-theme .md-input,
+.md-Valak-theme input {
+  color: rgba(255, 255, 255, 0.87);
+  border-color: rgba(0, 0, 0, 0.12);
+}
+md-input-container.md-Valak-theme .md-input:-ms-input-placeholder,
+.md-Valak-theme input:-ms-input-placeholder {
+  color: #696969;
+}
+md-input-container.md-Valak-theme .md-input::placeholder,
+.md-Valak-theme input::placeholder {
+  color: #696969;
+}
+md-input-container.md-Valak-theme .md-placeholder,
+md-input-container.md-Valak-theme label {
+  color: #696969;
+}
+.md-subheader.md-Valak-theme {
+  color: #696969;
+}
+md-input-container.md-Valak-theme:not(.md-input-invalid).md-input-has-value label {
+  color: rgba(160, 160, 160, 0.54);
+}
+.md-Valak-theme .md-datepicker-triangle-button .md-datepicker-expand-triangle {
+  border-top-color: rgba(167, 167, 167, 0.54);
+}
+md-autocomplete.md-Valak-theme {
+  background: #404040;
+}
+md-select.md-Valak-theme:not([disabled]):focus .md-select-value {
+  border-bottom-color: #455a64;
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+.md-button md-icon {
+  color: inherit !important;
 }
 .rounded-well.as-sortable-dragging {
   overflow: hidden;
@@ -460,6 +504,12 @@ md-sidenav {
  */
 table.md-table th.md-column {
   font-size: 1em;
+}
+.md-table-dark th.md-column {
+  color: #6f6f6f !important;
+}
+.md-table-dark td.md-cell {
+  color: white !important;
 }
 /**
  *  Autocomplete
@@ -8185,6 +8235,18 @@ button {
   background-color: #2d2d2d !important;
   color: white !important;
 }
+.bg-black-2 {
+  background-color: #272727 !important;
+  color: white !important;
+}
+.bg-red {
+  background: #960000 !important;
+  color: white !important;
+}
+.bg-gold {
+  background-color: #d2bc00 !important;
+  color: black !important;
+}
 /**
  *  Buttons
  */
@@ -9293,6 +9355,10 @@ body {
 }
 #MainNav md-ink-bar {
   height: 3px;
+}
+#Validaciones {
+  z-index: 70;
+  border-top: 1px solid #353535;
 }
 .QueryArea {
   background: #f3fbff !important;

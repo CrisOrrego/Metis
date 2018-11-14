@@ -8,8 +8,8 @@ angular.module('ConfiguracionCtrl', [])
 	
 		Ctrl.Subsecciones = [
 			{ Icon: 'fa-home', 		Titulo: 'General',  url: 'General' },
-			{ Icon: 'fa-id-card', 	Titulo: 'Permisos', url: 'Permisos' },
 			{ Icon: 'fa-user', 		Titulo: 'Usuarios', url: 'Usuarios' },
+			{ Icon: 'fa-id-card', 	Titulo: 'Perfiles', url: 'Perfiles' },
 		];
 
 		if(Rs.State.route.length < 4){

@@ -6,9 +6,17 @@ angular.module('Configuracion__UsuariosCtrl', [])
 		var Ctrl = $scope;
 		var Rs = $rootScope;
 	
-		Ctrl.UsuariosCRUD = $injector.get('CRUD').config({   base_url: '/api/Usuarios/usuarios' });
+		Ctrl.UsuariosCRUD = $injector.get('CRUD').config({	
+			base_url: '/api/Usuarios/usuarios',
+			//query_with: ['perfil']
+		});
 		Ctrl.UsuariosCRUD.get();
 
+		/*Ctrl.PerfilesCRUD = $injector.get('CRUD').config({   base_url: '/api/Usuarios/perfiles' });
+		Ctrl.PerfilesCRUD.get().then(() => {
+			Ctrl.Perfiles = Ctrl.PerfilesCRUD.rows;
+			console.log(Ctrl.Perfiles);
+		});*/
 
 		Ctrl.addUsuario = function(config){
 			angular.extend(config, {
@@ -24,6 +32,8 @@ angular.module('Configuracion__UsuariosCtrl', [])
 			angular.extend(config, {
 				title: 'Editar Usuario',
 				delete_title: '¿Eliminar Usuario: '+U.Nombre+'?',
+				only: [ 'Email', 'Nombre', 'Perfil_id' ],
+				with_delete: true
 			});
 
 			Ctrl.UsuariosCRUD.dialog(U, config).then(function(updatedElm){

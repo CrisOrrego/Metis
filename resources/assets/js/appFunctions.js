@@ -35,6 +35,15 @@ angular.module('appFunctions', [])
 			return (typeof arg == 'undefined' ? def : arg);
 		};
 
+		Rs.range = function(min, max, step) {
+			step = step || 1;
+			var input = [];
+			for (var i = min; i <= max; i += step) {
+			    input.push(i);
+			}
+			return input;
+		};
+
 		Rs.getSize = function(obj) {
 			if(typeof obj !== "undefined" && typeof obj !== "null"){
 				return Object.keys(obj).length;
@@ -374,7 +383,24 @@ angular.module('appFunctions', [])
 
 
 
+        Rs.log = (key, val1, val2, val3, datos) => {
 
+			var val1 = Rs.def(val1, null);
+			var val2 = Rs.def(val2, null);
+			var val3 = Rs.def(val3, null);
+			var datos = Rs.def(datos, []);
+
+			var defLog = {
+				usuario_id: Rs.Usuario.Id,
+				key: key,
+				val1: val1,
+				val2: val2,
+				val3: val3,
+				datos: datos
+			};
+
+			return Rs.http('log', defLog);
+		};
 
 
 

@@ -10,7 +10,7 @@
 		</div>
 
 		<md-button class="md-raised md-primary no-margin h30 mh30 " aria-label="Button" ng-click="addUsuario({ ev: $event, theme: '<% config('app.theme') %>' })">
-			<md-icon md-svg-icon="md-plus" class="margin-right"></md-icon>Nuevo
+			<md-icon md-svg-icon="md-plus" class="margin-right"></md-icon>Nuevo Usuario
 		</md-button>
 	</div>
 
@@ -26,10 +26,10 @@
 					</tr>
 				</thead>
 				<tbody md-body>
-					<tr md-row ng-repeat="U in UsuariosCRUD.rows | filter:filterUsuarios" class="md-row-hover md-pointer" ng-click="">
+					<tr md-row ng-repeat="U in UsuariosCRUD.rows | filter:filterUsuarios" class="md-row-hover md-pointer">
 						<td md-cell class="md-cell-compress">{{ U.Email }}</td>
 						<td md-cell class="">{{ U.Nombre }}</td>
-						<td md-cell class="md-cell-compress">{{ UsuariosCRUD.columns[3].Options.options[U.perfil_id] }}</td>
+						<td md-cell class="md-cell-compress">{{ UsuariosCRUD.columns[3].Options.options[U.Perfil_id] }}</td>
 						<td md-cell class="md-cell-compress">
 							<md-button class="md-icon-button no-margin" aria-label="Button" ng-click="editUsuario(U, { ev: $event, theme: '<% config('app.theme') %>' })">
 								<md-tooltip md-direction=left>Editar</md-tooltip>

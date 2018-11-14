@@ -58,45 +58,56 @@ class CRUD
 		$Query->limit($Ops['limit']);
 		
 		$debug = [];
+		//Scopes
 		foreach ($Ops['query_scopes'] as $qs) {
 			$Query = $Query->{$qs[0]}($qs[1]);
 		};
 
-		/*
+		//With
+		foreach ($Ops['query_with'] as $wt) {
+			$Query = $Query->with($wt);
+		}
+		
+
+		//Ordenado
+		foreach ($Ops['order_by'] as $o) {
+			if($o[0] == '-'){
+				$o = substr($o,1); $Dir = 'DESC';
+			}else{
+				$Dir = 'ASC';
+			}
+			$Query = $Query->orderBy($o, $Dir);
+		};
+
+		
 		$debug['sql'] 			= $Query->toSql();
 		$debug['sql_bindings'] 	= $Query->getBindings();
 		$debug['attrs'] 		= $this->Model->getAttributes();
-		*/
+		
 
 		$rows = $Query->get();
-
-		if(!empty($Ops['run_fn'])){
-			$Functions = $Ops['run_fn'];
-			$rows->each(function($row) use ($Functions){
-				foreach ($Functions as $Fn) {
-					$row->{$Fn[0]}($Fn[1]);	
-				};
-			});
-		};
 
 		return compact('ops', 'rows', 'debug');
 	}
 
 	public function find($Ops)
 	{
-		$Elm = $this->Model->where($Ops['primary_key'], $Ops['find_id'])->first();
-		if(!empty($Ops['run_fn'])){
-			foreach ($Ops['run_fn'] as $Fn) { $Elm->{$Fn[0]}($Fn[1]); };
-		};
-		return $Elm;
+		return $this->Model->where($Ops['primary_key'], $Ops['find_id'])->first();
 	}
 
 	public function add($Ops)
 	{
 		$New = $this->Model->create($Ops['obj']);
-		if(!empty($Ops['run_fn'])){
-			foreach ($Ops['run_fn'] as $Fn) { $New->{$Fn[0]}($Fn[1]); };
+		if($Ops['add_research']){
+			$NewElmQuery = $this->Model->orderBy($Ops['primary_key'], 'DESC');
+
+			if($Ops['add_with']){
+				foreach ($Ops['query_with'] as $wt) { $NewElmQuery = $NewElmQuery->with($wt); }
+			};
+
+			$New = $NewElmQuery->first();
 		};
+		
 		return $New;
 	}
 
@@ -114,6 +125,13 @@ class CRUD
 		$DaModel = $this->Model->where($primary_key, $Ops['obj'][$primary_key])->first();
 		$DaModel->fill($Filler);
 		$DaModel->save();
+
+		if($Ops['add_with']){
+			$ElmQuery = $this->Model->where($primary_key, $Ops['obj'][$primary_key]);
+			foreach ($Ops['query_with'] as $wt) { $ElmQuery = $ElmQuery->with($wt); }
+			$DaModel = $ElmQuery->first();
+		};
+
 		return $DaModel;
 	}
 

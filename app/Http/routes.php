@@ -18,6 +18,7 @@ Route::get('/Home', 		  				'MainController@getHome');
 Route::get('/Home/{section}', 				'MainController@getSection');
 Route::get('/Home/{section}/{subsection}',  'MainController@getSubsection');
 Route::get('/Frag/{fragment}',  			'MainController@getFragment');
+Route::post('/log',  						'MainController@log');
 Route::get('/ping', function(){ return 'OK'; });
 Route::get('/phpinfo', function(){ return phpinfo(); });
 
@@ -26,6 +27,7 @@ Route::get('/pass/{pass}', 		  			'MainController@getPass');
 Route::controller('/api/Main',				'MainController');
 Route::controller('/api/Usuarios',			'UsuariosController');
 Route::controller('/api/PQRS',				'PQRSController');
+Route::controller('/api/Validaciones',		'ValidacionesController');
 
 // Avoid conflicts with AngularJS.
 Blade::setContentTags('<%', '%>'); // For variables and all things Blade.

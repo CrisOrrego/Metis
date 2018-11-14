@@ -32,6 +32,8 @@ angular.module('CRUDDialogCtrl', [])
 		angular.extend(Ctrl.Obj, Obj);
 		angular.extend(Ctrl.config, config);
 
+		//console.log('Config', Ctrl.Obj, ops.primary_key);
+
 		Ctrl.cancel = function(){ $mdDialog.hide(false); };
 
 		Ctrl.sendData = function(){
