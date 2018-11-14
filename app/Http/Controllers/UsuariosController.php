@@ -40,6 +40,7 @@ class UsuariosController extends Controller
         }else{
             return response()->json(['Msg' => 'Error en correo o contraseña'], 512);
         };
+
     }
 
 
