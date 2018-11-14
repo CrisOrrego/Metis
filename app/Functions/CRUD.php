@@ -79,11 +79,11 @@ class CRUD
 			$Query = $Query->orderBy($o, $Dir);
 		};
 
-		/*
+		
 		$debug['sql'] 			= $Query->toSql();
 		$debug['sql_bindings'] 	= $Query->getBindings();
 		$debug['attrs'] 		= $this->Model->getAttributes();
-		*/
+		
 
 		$rows = $Query->get();
 

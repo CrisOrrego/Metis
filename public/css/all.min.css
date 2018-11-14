@@ -15,6 +15,9 @@ md-input-container.md-Snow_White-theme:not(.md-input-invalid).md-input-focused l
 md-input-container.md-Snow_White-theme:not(.md-input-invalid).md-input-focused md-icon {
   color: rgba(0, 0, 0, 0.8);
 }
+md-menu-content md-menu-item .md-button {
+  color: #4c4c4c !important;
+}
 md-tabs.md-Snow_White-theme .md-tab.md-active,
 md-tabs.md-Snow_White-theme .md-tab.md-active md-icon,
 md-tabs.md-Snow_White-theme .md-tab.md-focused,
@@ -8239,6 +8242,10 @@ button {
 .bg-red {
   background: #960000 !important;
   color: white !important;
+}
+.bg-gold {
+  background-color: #d2bc00 !important;
+  color: black !important;
 }
 /**
  *  Buttons

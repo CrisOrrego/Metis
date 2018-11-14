@@ -40,11 +40,11 @@ angular.module('MainCtrl', [])
 		};
 
 		Rs.Logout = function(){
-			Rs.navTo('Login', {});
+			Rs.http('api/Usuarios/logout', { Usuario: Rs.Usuario }).then(() => {
+				Rs.navTo('Login', {});
+			});
+			
 		};
-		
-		
-
 
 		/*if(Rs.State.route.length == 2){
 			Rs.navTo('Home.Section', { section: 'Cubos' });

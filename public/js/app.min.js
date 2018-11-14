@@ -76,11 +76,11 @@ angular.module('MainCtrl', [])
 		};
 
 		Rs.Logout = function(){
-			Rs.navTo('Login', {});
+			Rs.http('api/Usuarios/logout', { Usuario: Rs.Usuario }).then(() => {
+				Rs.navTo('Login', {});
+			});
+			
 		};
-		
-		
-
 
 		/*if(Rs.State.route.length == 2){
 			Rs.navTo('Home.Section', { section: 'Cubos' });
@@ -903,104 +903,130 @@ angular.module('Validaciones__ValidacionDiagCtrl', [])
 		Ctrl.Title = 'Nueva Validación';
 		Ctrl.Cancel = function(){ $mdDialog.cancel(); }
 
-		Ctrl.TiposDoc = ['CC','NIT'];
-		//Ctrl.Hoy = moment().toDate();
-		Ctrl.mimimumAge = moment().add(-18, 'years').toDate();
-		Ctrl.new = true;
-		Ctrl.clienteSearched = false;
-		Ctrl.comentariosLoaded = false;
-		Ctrl.Comentarios = [];
-		Ctrl.newComment = '';
-
-
-		Ctrl.getEdad = () => {
-			Ctrl.Cliente.edad = moment().diff(moment(Ctrl.Cliente.FechaNacimiento), 'years', false);
-		};
-
+		//Parámetros
+		Ctrl.range = Rs.range;
 		Ctrl.Val = {
+			Numero: '',
+			Estado: 'Pendiente',
 			causal_id: null,
-		};
-
-		Ctrl.Cliente = {
-			id: null,
 			TipoDoc: 'CC',
 			Doc: '',
-			Nombre: '',
 			FechaNacimiento: null,
+			SeguroCuota: null,
 			edad: 0,
+			TipoVehiculo: 'Particular',
+			FechaCifin: moment().toDate(),
+			diascifin: 0,
+		};
+		Ctrl.IngresoHora = 0;
+		Ctrl.IngresoMin = 0;
+		Ctrl.TiposDoc = ['CC','NIT'];
+		Ctrl.Hoy = moment().toDate();
+		Ctrl.mimimumAge = moment().add(-18, 'years').toDate();
+		Ctrl.new = true;
+		Ctrl.Comentarios = [];
+		Ctrl.newComment = '';
+		Ctrl.seguroCuotaOps = {
+			Si: 'SI TIENE, seguro de cuota',
+			No: 'NO TIENE, seguro de cuota',
+		};
+		Ctrl.tiposVehiculos = {
+			Particular: { Nombre: 'Particular',  DiasMaxCifin: 45 },
+			Publico: {    Nombre: 'Público',     DiasMaxCifin: 60 },
+		};
+		Ctrl.estadosVal = {
+			Pendiente: { color: 'bg-black-2' },
+			Devuelta: { color: 'bg-red' },
+			Avanzada: { color: 'bg-green' },
+			Desembolsada: { color: 'bg-gold text-black' },
+		}; 
+		Ctrl.canMarkPendiente = true;
+		Ctrl.canMarkDevuelta = true;
+		Ctrl.canMarkAvanzada = true;
+		Ctrl.canMarkDesembolsada = true;
+
+		Ctrl.explodeIngresoDate = () => {
+			var IngresoDate = moment(Ctrl.Val.Ingreso);
+			Ctrl.IngresoHora = IngresoDate.hours();
+			Ctrl.IngresoMin  = IngresoDate.minutes();
 		};
 
-		Ctrl.searchCliente = () => {
-			Rs.http('api/Validaciones/search-cliente', Ctrl.Cliente).then((r) => {
-				if(r == 'Not Found'){
-					Rs.showToast('Cliente no encontrado, favor crear', 'Error');
-				}else{
-					Ctrl.Cliente = r;
-					Ctrl.getEdad();
-				};
-				Ctrl.clienteSearched = true;
-			});
+		Ctrl.implodeIngresoDate = () => {
+			var IngresoDate = moment(Ctrl.Val.Ingreso);
+			IngresoDate.utc().hours(Ctrl.IngresoHora);
+			IngresoDate.utc().minutes(Ctrl.IngresoMin);
+
+			Ctrl.Val.Ingreso = IngresoDate.toDate();
 		};
 
+		Ctrl.calcEdad = () => {
+			Ctrl.Val.edad = Ctrl.Val.FechaNacimiento ? moment().diff(moment(Ctrl.Val.FechaNacimiento), 'years', false) : 0;
+			Ctrl.Val.SeguroCuota = (Ctrl.Val.edad > 69) ? 'Si' : null;
+
+			Ctrl.verifier();
+		};
+
+		Ctrl.calcCifin = () => {
+			Ctrl.Val.diascifin = moment().diff(moment(Ctrl.Val.FechaCifin), 'days', false);
+			Ctrl.blockCifin = (Ctrl.Val.diascifin > Ctrl.tiposVehiculos[Ctrl.Val.TipoVehiculo]['DiasMaxCifin']);
+
+			Ctrl.verifier();
+		};
+
+		Ctrl.verifier = () => {
+			
+			//Botones disponibles
+			var canAdvance = (Ctrl.Val.SeguroCuota == null || Ctrl.Val.SeguroCuota == 'No') 
+						  && (Ctrl.blockCifin == false)
+						  && (Ctrl.Val.causal_id == null);
+			Ctrl.canMarkAvanzada = canAdvance;
+			Ctrl.canMarkDevuelta = (Ctrl.Val.causal_id !== null);
+			Ctrl.canMarkDesembolsada = canAdvance && (Ctrl.Val.Estado == 'Avanzada');
+		};
+
+
+		
 		Ctrl.searchCausales = (searchText) => {
 			return $filter('filter')(Causales, searchText);
 		};
 
 		Ctrl.CausalSelChange = (CausalSel) => {
-			if(typeof CausalSel == 'undefined'){
-				Ctrl.Val.causal_id = null;
-			}else{
-				Ctrl.Val.causal_id = CausalSel.id;
-			}
+			Ctrl.Val.causal_id = (typeof CausalSel == 'undefined') ? null : CausalSel.id;
 		};
 
 		Ctrl.check = () => {
-			if(Ctrl.Cliente.Doc.length == 0){ Rs.showToast('Falta documento del cliente', 'Error'); return false; }
-			if(Ctrl.Cliente.Nombre.length == 0){ Rs.showToast('Falta nombre del cliente', 'Error'); return false; }
-			if(Ctrl.Cliente.TipoDoc == 'NIT'){
-				Ctrl.Cliente.FechaNacimiento = null;
+			if(Ctrl.Val.Numero.trim().length == 0){ Rs.showToast('Falta el número de solicitud', 'Error'); return false; }
+			if(Ctrl.Val.Doc.trim().length == 0){ Rs.showToast('Falta documento del cliente', 'Error'); return false; }
+			if(Ctrl.Val.TipoDoc == 'NIT'){
+				Ctrl.Val.FechaNacimiento = null;
 			}else{
-				if(Ctrl.Cliente.FechaNacimiento == null){ Rs.showToast('Falta fecha de nacimiento del cliente', 'Error'); return false; }
-			}
-			if(Ctrl.Val.causal_id == null){ Rs.showToast('Falta la causal', 'Error'); return false; }
+				if(Ctrl.Val.FechaNacimiento == null){ Rs.showToast('Falta fecha de nacimiento del cliente', 'Error'); return false; }
+			};
 
 			return true;
 		};
 
-		Ctrl.create = () => {
+
+
+		Ctrl.mark = (Estado) => {
 			var checked = Ctrl.check();
 			if(!checked) return false;
 
-			Rs.http('api/Validaciones/create', { Validacion: Ctrl.Val, Cliente: Ctrl.Cliente }).then((r) => {
-				Ctrl.Val = r[0];
-				Ctrl.Cliente = r[1];
-
-				Rs.showToast('Validación Creada', 'Success');
-				Ctrl.new = false;
-				Ctrl.comentariosLoaded = true;
-			});
-		};
-
-
-		Ctrl.save = (mode) => {
-			var checked = Ctrl.check();
-			if(!checked) return false;
-
-			Rs.http('api/Validaciones/save', { mode: mode, Validacion: Ctrl.Val, Cliente: Ctrl.Cliente }).then((r) => {
+			Rs.http('api/Validaciones/save', { Estado: Estado, Validacion: Ctrl.Val }).then(() => {
 				$mdDialog.hide();
 			});
 		};
 
 		Ctrl.terminate = (mode) => {
 			Rs.Confirm({
-				Titulo: '¿Terminar esta validación como '+mode+'?',
+				Titulo: '¿Marcar esta validación como '+mode+'?',
 				Detail: 'Cerrar atención',
 				Buttons: [
 					{ Text: 'Terminar', Class: 'md-raised md-danger', Value: true }
 				],
 			}).then((confirmed) => {
 				if(confirmed){
-					Ctrl.save(mode);
+					Ctrl.mark(mode);
 				};
 			});
 		}
@@ -1017,17 +1043,36 @@ angular.module('Validaciones__ValidacionDiagCtrl', [])
 			});
 		};
 
+		Ctrl.$watchGroup([
+			'Val.FechaNacimiento',
+		], Ctrl.calcEdad);
+
+		Ctrl.$watchGroup([
+			'Val.FechaCifin',
+			'Val.TipoVehiculo',
+		], Ctrl.calcCifin);
+
+		Ctrl.$watchGroup([
+			'Val.SeguroCuota',
+			'Val.causal_id',
+		], Ctrl.verifier);
 
 		//Si no es nuevo
 		if(Validacion !== null){
 			Ctrl.Val = angular.copy(Validacion);
-			Ctrl.Cliente = angular.copy(Validacion.cliente);
 			Ctrl.new = false;
-			Ctrl.clienteSearched = true;
 			Ctrl.CausalSel = $filter('filter')(Causales, { id: Ctrl.Val.causal_id })[0];
 
-			Rs.http('api/Validaciones/comentarios', { validacion_id: Ctrl.Val.id }, Ctrl, 'Comentarios').then(() => {
-				Ctrl.comentariosLoaded = true;
+			Rs.log('USUARIO.ESTADO', 'Validando', Ctrl.Val.id, Ctrl.Val.Estado).then(() => {
+				Ctrl.explodeIngresoDate();
+				Rs.http('api/Validaciones/comentarios', { validacion_id: Ctrl.Val.id }, Ctrl, 'Comentarios');
+			});
+			
+		}else{
+			Rs.http('api/Validaciones/create', { Validacion: Ctrl.Val }).then((r) => {
+				Ctrl.Val = r;
+				Ctrl.new = false;
+				Ctrl.explodeIngresoDate();
 			});
 		};
 
@@ -1055,11 +1100,12 @@ angular.module('Validaciones__ValidacionesCtrl', [])
 
 		Ctrl.filterNavOpen = true;
 		Ctrl.Hoy = moment().toDate();
-		Ctrl.Desde = moment().add(-1, 'days').toDate();
+		Ctrl.Desde = moment().add(-1, 'months').toDate();
 		Ctrl.Hasta = angular.copy(Ctrl.Hoy);
 		Ctrl.Estado = 'Pendientes';
 		Ctrl.TipoCliente = 'Todos';
 		Ctrl.CausalFilter = false;
+		Ctrl.NumeroFilter = '';
 
 		//Validaciones
 		Ctrl.ValidacionesCRUD = $injector.get('CRUD').config({ 
@@ -1071,7 +1117,6 @@ angular.module('Validaciones__ValidacionesCtrl', [])
 				[ 'estado',  'Pendientes' ],
 				[ 'causal',  false ],
 			],
-			query_with: ['cliente'],
 			add_append: 'refresh',
 			limit: 1000
 		});
@@ -1081,6 +1126,7 @@ angular.module('Validaciones__ValidacionesCtrl', [])
 			Ctrl.ValidacionesCRUD.setScope('estado', Ctrl.Estado );
 			Ctrl.ValidacionesCRUD.setScope('tipocliente', Ctrl.TipoCliente );
 			Ctrl.ValidacionesCRUD.setScope('causal', Ctrl.CausalFilter );
+			Ctrl.ValidacionesCRUD.setScope('numero', Ctrl.NumeroFilter );
 			Ctrl.ValidacionesCRUD.get();
 		};
 
@@ -1101,8 +1147,13 @@ angular.module('Validaciones__ValidacionesCtrl', [])
 		Rs.http('api/Validaciones/causales', {}, Ctrl, 'Causales').then(() => {
 			//Ctrl.validacionDiag(null);
 			Ctrl.getValidaciones();
-			
 		});
+
+
+		Ctrl.estadoUsuarioChange = () => {
+			Rs.log('USUARIO.ESTADO', Ctrl.EstadoUsuario);
+		};
+		Ctrl.estadoUsuarioChange();
 		
 
 	}
@@ -1813,6 +1864,15 @@ angular.module('appFunctions', [])
 			return (typeof arg == 'undefined' ? def : arg);
 		};
 
+		Rs.range = function(min, max, step) {
+			step = step || 1;
+			var input = [];
+			for (var i = min; i <= max; i += step) {
+			    input.push(i);
+			}
+			return input;
+		};
+
 		Rs.getSize = function(obj) {
 			if(typeof obj !== "undefined" && typeof obj !== "null"){
 				return Object.keys(obj).length;
@@ -2152,7 +2212,24 @@ angular.module('appFunctions', [])
 
 
 
+        Rs.log = (key, val1, val2, val3, datos) => {
 
+			var val1 = Rs.def(val1, null);
+			var val2 = Rs.def(val2, null);
+			var val3 = Rs.def(val3, null);
+			var datos = Rs.def(datos, []);
+
+			var defLog = {
+				usuario_id: Rs.Usuario.Id,
+				key: key,
+				val1: val1,
+				val2: val2,
+				val3: val3,
+				datos: datos
+			};
+
+			return Rs.http('log', defLog);
+		};
 
 
 

@@ -20,11 +20,12 @@ angular.module('Validaciones__ValidacionesCtrl', [])
 
 		Ctrl.filterNavOpen = true;
 		Ctrl.Hoy = moment().toDate();
-		Ctrl.Desde = moment().add(-1, 'days').toDate();
+		Ctrl.Desde = moment().add(-1, 'months').toDate();
 		Ctrl.Hasta = angular.copy(Ctrl.Hoy);
 		Ctrl.Estado = 'Pendientes';
 		Ctrl.TipoCliente = 'Todos';
 		Ctrl.CausalFilter = false;
+		Ctrl.NumeroFilter = '';
 
 		//Validaciones
 		Ctrl.ValidacionesCRUD = $injector.get('CRUD').config({ 
@@ -36,7 +37,6 @@ angular.module('Validaciones__ValidacionesCtrl', [])
 				[ 'estado',  'Pendientes' ],
 				[ 'causal',  false ],
 			],
-			query_with: ['cliente'],
 			add_append: 'refresh',
 			limit: 1000
 		});
@@ -46,6 +46,7 @@ angular.module('Validaciones__ValidacionesCtrl', [])
 			Ctrl.ValidacionesCRUD.setScope('estado', Ctrl.Estado );
 			Ctrl.ValidacionesCRUD.setScope('tipocliente', Ctrl.TipoCliente );
 			Ctrl.ValidacionesCRUD.setScope('causal', Ctrl.CausalFilter );
+			Ctrl.ValidacionesCRUD.setScope('numero', Ctrl.NumeroFilter );
 			Ctrl.ValidacionesCRUD.get();
 		};
 
@@ -66,8 +67,13 @@ angular.module('Validaciones__ValidacionesCtrl', [])
 		Rs.http('api/Validaciones/causales', {}, Ctrl, 'Causales').then(() => {
 			//Ctrl.validacionDiag(null);
 			Ctrl.getValidaciones();
-			
 		});
+
+
+		Ctrl.estadoUsuarioChange = () => {
+			Rs.log('USUARIO.ESTADO', Ctrl.EstadoUsuario);
+		};
+		Ctrl.estadoUsuarioChange();
 		
 
 	}

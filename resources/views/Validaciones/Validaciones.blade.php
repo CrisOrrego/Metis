@@ -9,7 +9,7 @@
 
 			<span flex></span>
 			<div style="margin-top: 0px" class="">
-				<md-select ng-model="EstadoUsuario" aria-label="s" class="no-margin h40 md-no-underline">
+				<md-select ng-model="EstadoUsuario" aria-label="s" class="no-margin h40 md-no-underline" ng-change="estadoUsuarioChange()">
 					<md-option ng-repeat="Op in EstadosUsuario" ng-value="Op.Nombre">
 						<md-icon md-font-icon="fa-circle fa-fw margin-right-5" ng-style="{ color: Op.Color }"></md-icon>
 						{{ Op.Nombre }}
@@ -50,14 +50,17 @@
 					<thead md-head md-order="">
 						<tr md-row>
 							<th md-column></th>
+							<th md-column>Estado</th>
 							<th md-column>No</th>
+							<th md-column>Ingreso</th>
 							<th md-column>Inicio</th>
 							<th md-column>Fin</th>
 							<th md-column>Documento</th>
-							<th md-column>Nombre</th>
 							<th md-column>Edad</th>
-							<th md-column>Causal</th>
-							<th md-column>Estado</th>
+							<th md-column>Causal Devolución</th>
+							<th md-column>Servicio</th>
+							<th md-column>Fecha CIFIN</th>
+							<th md-column>Días CIFIN</th>
 						</tr>
 					</thead>
 					<tbody md-body>
@@ -68,25 +71,33 @@
 									<md-icon md-svg-icon="md-edit" class=""></md-icon>
 								</md-button>
 							</td>
-							<td md-cell class="md-cell-compress">{{ Row.id }}</td>
-							<td md-cell class="md-cell-compress">{{ Row.Inicio }}</td>
-							<td md-cell class="md-cell-compress">{{ Row.Fin }}</td>
+							<td md-cell class="md-cell-compress">{{ Row.Estado }}</td>
+							<td md-cell class="md-cell-compress">{{ Row.Numero }}</td>
+							<td md-cell class="md-cell-compress">{{ Row.Ingreso | dateformat:'YYYY-MM-DD hh:mma' }}</td>
+							<td md-cell class="md-cell-compress">{{ Row.Inicio | dateformat:'YYYY-MM-DD hh:mma' }}</td>
+							<td md-cell class="md-cell-compress">{{ Row.Fin    | dateformat:'YYYY-MM-DD hh:mma' }}</td>
 							<td md-cell class="md-cell-compress">
 								<div class="w100p" layout>
-									<md-icon md-font-icon="fa-lg fa-building" ng-if="Row.cliente.TipoDoc == 'NIT'"></md-icon>
-									<md-icon md-font-icon="fa-lg fa-user" ng-if="Row.cliente.TipoDoc !== 'NIT'"></md-icon>
-									<span flex>{{ Row.cliente.TipoDoc + ':' + Row.cliente.Doc }}</span>
+									<md-icon md-font-icon="fa-lg fa-building" ng-if="Row.TipoDoc == 'NIT'"></md-icon>
+									<md-icon md-font-icon="fa-lg fa-user" ng-if="Row.TipoDoc !== 'NIT'"></md-icon>
+									<span flex>{{ Row.TipoDoc + ':' + Row.Doc }}</span>
 								</div>
 							</td>
-							<td md-cell class="md-cell-compress">{{ Row.cliente.Nombre }}</td>
-							<td md-cell class="md-cell-compress">{{ Row.cliente.edad }}</td>
+							<td md-cell class="md-cell-compress"><span ng-if="Row.TipoDoc !== 'NIT'">{{ Row.edad }}</span></td>
 							<td md-cell class="md-cell-compress">{{ Row.causal.Causal }}</td>
-							<td md-cell class="md-cell-compress">{{ Row.Estado }}</td>
+							<td md-cell class="md-cell-compress">{{ Row.TipoVehiculo }}</td>
+							<td md-cell class="md-cell-compress">{{ Row.FechaCifin }}</td>
+							<td md-cell class="md-cell-compress">{{ Row.diascifin }}</td>
 						</tr>
 					</tbody>
 				</table>
+				<div ng-show="!ValidacionesCRUD.ops.loading && ValidacionesCRUD.rows.length == 0" class="text-center padding">
+					Sin registros
+				</div>
 				<div class="h50"></div>
 			</md-table-container>
+
+			
 
 			<div layout layout-align="center center" flex ng-if="ValidacionesCRUD.ops.loading" class="margin-top-20">
 				<md-progress-circular md-mode="indeterminate" class="margin-right"></md-progress-circular>

@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use App\Models\Core\MyModel;
+use Carbon\Carbon;
 
 class Validacion extends MyModel
 {
@@ -11,6 +11,7 @@ class Validacion extends MyModel
     protected $guarded = [ 'id' ];
     public $timestamps = false;
     protected $with = ['causal'];
+    protected $appends = ['edad', 'diascifin'];
 
     public function columns()
 	{
@@ -32,17 +33,18 @@ class Validacion extends MyModel
 	public function scopeEntre($q, $Fechas)
 	{
 		$FIni = substr($Fechas[0], 0, 10);
-		$FFin = substr($Fechas[1], 0, 10);
+		$FFin = substr($Fechas[1], 0, 10)." 23:59:59";
 
 		return $q->where('Inicio', '>=', $FIni)->where('Inicio', '<=', $FFin);
 	}
 
 	public function scopeEstado($q, $EstadoF)
 	{
-		if($EstadoF == 'Pendientes'){ $Estado = 'Pendiente'; }
-		if($EstadoF == 'Avanzadas'){ $Estado = 'Avanzada'; }
-		if($EstadoF == 'Devueltas'){ $Estado = 'Devuelta'; }
-		if($EstadoF == 'Inactivas'){ $Estado = 'Inactiva'; }
+		if($EstadoF == 'Pendientes'){ 		$Estado = 'Pendiente'; }
+		if($EstadoF == 'Avanzadas'){ 		$Estado = 'Avanzada'; }
+		if($EstadoF == 'Devueltas'){ 		$Estado = 'Devuelta'; }
+		if($EstadoF == 'Desembolsadas'){ 	$Estado = 'Desembolsada'; }
+		if($EstadoF == 'Inactivas'){ 		$Estado = 'Inactiva'; }
 
 		return $q->where('Estado', $Estado);
 	}
@@ -52,13 +54,13 @@ class Validacion extends MyModel
 		if($TipoClienteF == 'Todos'){
 			return $q;
 		}else if($TipoClienteF == 'Empresas'){
-			return $q->whereHas('cliente', function($c){
-			    $c->where('TipoDoc', 'NIT');
-			});
+			return $q->where('TipoDoc', 'NIT');
+			//return $q->whereHas('cliente', function($c){});
 		}else if($TipoClienteF == 'Personas'){
-			return $q->whereHas('cliente', function($c){
+			return $q->where('TipoDoc', 'NOT LIKE', 'NIT');
+			/*return $q->whereHas('cliente', function($c){
 			    $c->where('TipoDoc', 'NOT LIKE', 'NIT');
-			});
+			});*/
 		};
 	}
 
@@ -68,17 +70,37 @@ class Validacion extends MyModel
 		return $q->where('causal_id', $causal_id);
 	}
 
+	public function scopeTipo($q, $tipo)
+	{
+		if(!$tipo) return $q;
+		return $q->where('Tipo', $tipo);
+	}
+
+	public function scopeNumero($q, $numero)
+	{
+		if(!$numero OR $numero == '') return $q;
+		return $q->where('Numero', $numero);
+	}
+
 
 
 	//relations
-	public function cliente()
-	{
-		return $this->belongsTo('App\Models\Cliente');
-	}
-
 	public function causal()
 	{
 		return $this->hasOne('App\Models\ValidacionesCausales', 'id', 'causal_id');
+	}
+
+
+
+	//Attributes
+	public function getEdadAttribute()
+	{
+		return Carbon::parse($this->FechaNacimiento)->age;
+	}
+
+	public function getDiascifinAttribute()
+	{
+		return Carbon::parse($this->FechaCifin)->diffInDays();
 	}
 
 }

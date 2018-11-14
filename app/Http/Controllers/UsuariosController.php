@@ -35,12 +35,19 @@ class UsuariosController extends Controller
         $Usuario = Usuario::where('Email', $User)->first();
 
         if($Usuario && Hash::check($Pass, $Usuario['Contraseña'])){
+            addlog($Usuario->Id, 'USUARIO.LOGIN', 'Login');
             return Crypt::encrypt($Usuario->Id);
         }else{
             return response()->json(['Msg' => 'Error en correo o contraseña'], 512);
         };
     }
 
+
+    public function postLogout()
+    {
+        $Usuario = request('Usuario');
+        addlog($Usuario['Id'], 'USUARIO.LOGIN', 'Logout');
+    }
 
 
     public function postCheckToken()

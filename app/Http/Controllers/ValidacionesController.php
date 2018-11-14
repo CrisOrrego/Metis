@@ -11,7 +11,6 @@ use App\Models\Usuario;
 use App\Models\Validacion;
 use App\Models\ValidacionesCausales;
 use App\Models\ValidacionesComentario;
-use App\Models\Cliente;
 use Crypt;
 use App\Functions\CRUD;
 use Carbon\Carbon;
@@ -29,18 +28,6 @@ class ValidacionesController extends Controller
     	return ValidacionesCausales::get();
     }
 
-    public function postSearchCliente()
-    {
-    	extract(request()->all());
-    	$Cliente = Cliente::where('TipoDoc', $TipoDoc)->where('Doc', $Doc)->first();
-
-    	if(!$Cliente){
-    		return 'Not Found';
-    	}else{
-    		return $Cliente;
-    	};
-    }
-
     public function authenticate()
     {
         $token = request()->header('token');
@@ -52,59 +39,52 @@ class ValidacionesController extends Controller
         };
     }
 
-    public function saveCliente($Cliente)
-    {
-        //Crear o actualizar el cliente
-        if($Cliente['id'] == null){
-            unset($Cliente['edad']);
-            $DaCliente = Cliente::create($Cliente);
-        }else{
-            $DaCliente = Cliente::where('id', $Cliente['id'])->first();
-            $DaCliente->fillit($Cliente);
-            $DaCliente->save();
-        };
 
-        return $DaCliente;
+    public function prepVal($Validacion, $Usuario)
+    {
+        unset($Validacion['edad'], $Validacion['diascifin']);
+        $Validacion['usuario_id'] = $Usuario['Id'];
+        return $Validacion;
     }
+        
 
     public function postCreate()
     {
-        extract(request()->all()); //$Validacion, $Cliente
+        extract(request()->all()); //$Validacion
 
-        $DaCliente = $this->saveCliente($Cliente);
         $Usuario = $this->authenticate();
+        $Validacion = $this->prepVal($Validacion, $Usuario);
 
-        $Validacion['usuario_id'] = $Usuario['Id'];
-        $Validacion['cliente_id'] = $DaCliente['id'];
-        $Validacion['Estado'] = 'Pendiente';
-
-        //Crear la atención
         $DaVal = Validacion::create($Validacion);
 
-        return [ $DaVal, $DaCliente ];
+        addlog($Usuario['Id'], 'USUARIO.ESTADO', 'Validando', $DaVal->id, $DaVal->Estado);
+        
+        return Validacion::find($DaVal->id);
+
     }
 
     public function postSave()
     {
-        extract(request()->all()); //$mode, $Validacion, $Cliente
+        extract(request()->all()); //$Estado, $Validacion
 
-        $DaCliente = $this->saveCliente($Cliente);
+        //435654
+        $ExistingVal = Validacion::where('Numero', $Validacion['Numero'])->where('id', '<>', $Validacion['id'])->first();
+        if($ExistingVal) return response()->json([ 'Msg' => 'ERROR, Número de validación ya existe' ], 512);
+
         $Usuario = $this->authenticate();
+        $Validacion = $this->prepVal($Validacion, $Usuario);
 
         $Validacion['usuario_id'] = $Usuario['Id'];
-        if($mode == 'Pendiente'){
-            $Validacion['Fin'] = null;
-        }else{
-            $Validacion['Fin'] = Carbon::now();
-        }
-
-        $Validacion['Estado'] = $mode;
+        $Validacion['Fin'] = ($Estado == 'Pendiente') ? null : Carbon::now();
+        $Validacion['Estado'] = $Estado;
 
         $DaVal = Validacion::where('id', $Validacion['id'])->first();
         $DaVal->fillit($Validacion);
-
         $DaVal->save();
 
+        addlog($Usuario['Id'], 'USUARIO.ESTADO', 'Activo', $DaVal->id, $Estado);
+
+        return $DaVal;
     }
 
     public function postComentarios()
@@ -120,7 +100,6 @@ class ValidacionesController extends Controller
         $newComment = ValidacionesComentario::create([
             'usuario_id' => $Usuario['Id'],
             'validacion_id' => $Validacion['id'],
-            'cliente_id' => $Validacion['cliente_id'],
             'Comentario' => $newComment
         ]);
 
