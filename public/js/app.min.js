@@ -21,9 +21,6 @@ angular.module('LoginCtrl', [])
 
 		Ctrl.Login = function(){
 			$http.post('api/Usuarios/login', { User: Ctrl.User, Pass: Ctrl.Pass }).then(function(r){
-				
-				r = r.data;
-				console.log(r);
 
 				if(r.status == 200){
 					var token = r.data;
@@ -414,44 +411,6 @@ angular.module('BottomSheetCtrl', [])
 		}
 	}
 ]);
-angular.module('ConfirmCtrl', [])
-.controller(   'ConfirmCtrl', ['$scope', 'Config', '$mdDialog', 
-	function ($scope, Config, $mdDialog) {
-
-		var Ctrl = $scope;
-
-		Ctrl.Config = Config;
-
-		Ctrl.Cancel = function(){
-			$mdDialog.cancel();
-		}
-
-		Ctrl.Send = function(val){
-			$mdDialog.hide(val);
-		}
-		
-	}
-
-]);
-angular.module('ConfirmDeleteCtrl', [])
-.controller(   'ConfirmDeleteCtrl', ['$scope', 'Config', '$mdDialog', 
-	function ($scope, Config, $mdDialog) {
-
-		var Ctrl = $scope;
-
-		Ctrl.Config = Config;
-
-		Ctrl.Cancel = function(){
-			$mdDialog.hide(false);
-		}
-
-		Ctrl.Delete = function(){
-			$mdDialog.hide(true);
-		}
-		
-	}
-
-]);
 angular.module('CRUDDialogCtrl', [])
 .controller('CRUDDialogCtrl', ['$rootScope', '$scope', '$mdDialog', 'ops', 'config', 'columns', 'Obj', 'rows', 
 	function($rootScope, $scope, $mdDialog, ops, config, columns, Obj, rows) {
@@ -525,6 +484,44 @@ angular.module('CRUDDialogCtrl', [])
 		//Ctrl.fields = angular.copy
 
 	}
+]);
+angular.module('ConfirmCtrl', [])
+.controller(   'ConfirmCtrl', ['$scope', 'Config', '$mdDialog', 
+	function ($scope, Config, $mdDialog) {
+
+		var Ctrl = $scope;
+
+		Ctrl.Config = Config;
+
+		Ctrl.Cancel = function(){
+			$mdDialog.cancel();
+		}
+
+		Ctrl.Send = function(val){
+			$mdDialog.hide(val);
+		}
+		
+	}
+
+]);
+angular.module('ConfirmDeleteCtrl', [])
+.controller(   'ConfirmDeleteCtrl', ['$scope', 'Config', '$mdDialog', 
+	function ($scope, Config, $mdDialog) {
+
+		var Ctrl = $scope;
+
+		Ctrl.Config = Config;
+
+		Ctrl.Cancel = function(){
+			$mdDialog.hide(false);
+		}
+
+		Ctrl.Delete = function(){
+			$mdDialog.hide(true);
+		}
+		
+	}
+
 ]);
 angular.module('Core__ImageEditor_DialogCtrl', [])
 .controller(   'Core__ImageEditor_DialogCtrl', ['$scope', '$rootScope', '$mdDialog', '$mdToast', '$timeout', '$http', 'Upload', 'Config', 

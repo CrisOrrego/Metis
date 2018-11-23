@@ -21,9 +21,6 @@ angular.module('LoginCtrl', [])
 
 		Ctrl.Login = function(){
 			$http.post('api/Usuarios/login', { User: Ctrl.User, Pass: Ctrl.Pass }).then(function(r){
-				
-				r = r.data;
-				console.log(r);
 
 				if(r.status == 200){
 					var token = r.data;
