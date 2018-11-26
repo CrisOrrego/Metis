@@ -73,7 +73,7 @@ angular.module('Validaciones__ValidacionDiagCtrl', [])
 		};
 
 		Ctrl.calcCifin = () => {
-			Ctrl.Val.diascifin = moment().diff(moment(Ctrl.Val.FechaCifin), 'days', false);
+			Ctrl.Val.diascifin = moment().diff(moment(Ctrl.Val.FechaCifin), 'days', false) + 1;
 			Ctrl.blockCifin = (Ctrl.Val.diascifin > Ctrl.tiposVehiculos[Ctrl.Val.TipoVehiculo]['DiasMaxCifin']);
 
 			Ctrl.verifier();
