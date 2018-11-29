@@ -40,10 +40,10 @@ class ValidacionesController extends Controller
     }
 
 
-    public function prepVal($Validacion, $Usuario)
+    public function prepVal($Validacion, $Usuario, $update_user = true)
     {
         unset($Validacion['edad'], $Validacion['diascifin']);
-        $Validacion['usuario_id'] = $Usuario['Id'];
+        if($update_user){ $Validacion['usuario_id'] = $Usuario['Id']; };
         return $Validacion;
     }
         
@@ -74,7 +74,7 @@ class ValidacionesController extends Controller
         if($ExistingVal) return response()->json([ 'Msg' => 'ERROR, Número de validación ya existe' ], 512);
 
         $Usuario = $this->authenticate();
-        $Validacion = $this->prepVal($Validacion, $Usuario);
+        $Validacion = $this->prepVal($Validacion, $Usuario, false);
 
         $Validacion['usuario_id'] = $Usuario['Id'];
         $Validacion['Fin'] = ($Estado == 'Pendiente') ? null : Carbon::now();
@@ -105,9 +105,39 @@ class ValidacionesController extends Controller
             'Comentario' => $newComment
         ]);
 
-
-
         return ValidacionesComentario::find($newComment->id);
+    }
+
+    public function postUsuarioStatus()
+    {
+        $Usuario = $this->authenticate();
+        $Hoy = Carbon::today()->toDateString();
+        $s = [
+            'Validaciones' => 0,
+            'Segs_Activo' => 0
+        ];
+
+        $s['Validaciones'] = Validacion::usuario($Usuario['Id'])->entre([$Hoy, $Hoy])->count();
+        $EstadosActivos = \App\Models\Log::usuario($Usuario['Id'])->entre([$Hoy, $Hoy])->llaves(['USUARIO.ESTADO'])->valor1(['Activo','Validando'])->get();
+
+
+        
+        $s['Segs_Activo'] = $EstadosActivos->sum('dur');
+
+        //Añadir el último Activo
+        $LastActivo = $EstadosActivos->last();
+        if($LastActivo->dur == 0){
+            $s['Segs_Activo'] += Carbon::now()->diffInSeconds($LastActivo->created_at);
+        };
+
+
+
+        $s['Horas_Activo'] = $s['Segs_Activo'] / (60 * 60);
+
+        $s['LastActivo']     = $LastActivo;
+        $s['EstadosActivos'] = $EstadosActivos;
+
+        return $s;
     }
 
 }

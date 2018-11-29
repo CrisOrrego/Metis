@@ -19,6 +19,7 @@ Route::get('/Home/{section}', 				'MainController@getSection');
 Route::get('/Home/{section}/{subsection}',  'MainController@getSubsection');
 Route::get('/Frag/{fragment}',  			'MainController@getFragment');
 Route::post('/log',  						'MainController@log');
+Route::post('/touch',  						'MainController@touch');
 Route::get('/ping', function(){ return 'OK'; });
 Route::get('/phpinfo', function(){ return phpinfo(); });
 

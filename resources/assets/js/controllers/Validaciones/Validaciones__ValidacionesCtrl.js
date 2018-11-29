@@ -1,6 +1,6 @@
 angular.module('Validaciones__ValidacionesCtrl', [])
-.controller('Validaciones__ValidacionesCtrl', ['$scope', '$rootScope', '$http', '$mdDialog', '$injector',
-	function($scope, $rootScope, $http, $mdDialog, $injector) {
+.controller('Validaciones__ValidacionesCtrl', ['$scope', '$rootScope', '$http', '$mdDialog', '$injector', '$timeout', '$window',
+	function($scope, $rootScope, $http, $mdDialog, $injector, $timeout, $window) {
 
 		console.info('Validaciones__ValidacionesCtrl');
 		var Ctrl = $scope;
@@ -32,7 +32,7 @@ angular.module('Validaciones__ValidacionesCtrl', [])
 			base_url: '/api/Validaciones',
 			order_by: ['-id'],
 			query_scopes: [ 
-				[ 'usuario', Rs.Usuario.Id ],
+				//[ 'usuario', Rs.Usuario.Id ],
 				[ 'entre',   [] ],
 				[ 'estado',  'Pendientes' ],
 				[ 'causal',  false ],
@@ -71,10 +71,39 @@ angular.module('Validaciones__ValidacionesCtrl', [])
 
 
 		Ctrl.estadoUsuarioChange = () => {
-			Rs.log('USUARIO.ESTADO', Ctrl.EstadoUsuario);
+			Rs.log('USUARIO.ESTADO', Ctrl.EstadoUsuario).then(() => {
+				Ctrl.getUsuarioStatus();
+			});
+
 		};
 		Ctrl.estadoUsuarioChange();
 		
+
+
+
+		//Usuario Status
+		var usuarioStatusTimeout = false;
+		Ctrl.getUsuarioStatus = () => {
+			if(usuarioStatusTimeout){
+				$timeout.cancel(usuarioStatusTimeout);
+				usuarioStatusTimeout = false;
+			};
+
+			if(Rs.State.route.join('.') !== '.Home.Validaciones') return;
+
+			Rs.http('api/Validaciones/usuario-status', {}, Ctrl, 'UsuarioStatus').then(() => {
+				usuarioStatusTimeout = $timeout(Ctrl.getUsuarioStatus, (1000*60));
+			});
+		};
+
+		Ctrl.$on('$destroy', () => {
+			Rs.log('USUARIO.ESTADO', '_OFFLINE');
+		});
+
+		$window.onbeforeunload = () => { Rs.log('USUARIO.ESTADO', '_OFFLINE'); };
+
+
+
 
 	}
 ]);

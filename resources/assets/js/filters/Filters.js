@@ -107,6 +107,11 @@ angular.module('Filters', [])
 			if(!d) return d;
 			return moment(d).format(format);
 		}
+	}).filter('segstodate', function() {
+		return function(s,format) {
+			if(!s) return s;
+			return moment().startOf('day').seconds(s).format(format);
+		}
 	});
 
 

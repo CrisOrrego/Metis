@@ -27,8 +27,7 @@ class Validacion extends MyModel
 	//scopes
 	public function scopeUsuario($q, $usuario_id)
 	{
-		return $q; //FIXED 2018-11-26
-		//return $q->where('usuario_id', $usuario_id);
+		return $q->where('usuario_id', $usuario_id);
 	}
 
 	public function scopeEntre($q, $Fechas)

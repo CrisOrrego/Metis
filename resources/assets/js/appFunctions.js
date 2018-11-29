@@ -402,6 +402,10 @@ angular.module('appFunctions', [])
 			return Rs.http('log', defLog);
 		};
 
+		Rs.touch = (key) => {
+			return Rs.http('touch', { usuario_id: Rs.Usuario.Id, key: key });
+		};
+
 
 
 

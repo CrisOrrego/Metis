@@ -62,5 +62,11 @@ class MainController extends Controller
 		addlog($usuario_id, $key, $val1, $val2, $val3, $datos);
 	}
 
+	public function touch()
+	{
+		extract(request()->all());
+		touchlog($usuario_id, $key);
+	}
+
 
 }
