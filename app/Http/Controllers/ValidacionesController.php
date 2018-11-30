@@ -198,6 +198,8 @@ class ValidacionesController extends Controller
 
         $HStart = floor($HStart / (60 * 60));
         $HEnd   = ceil( $HEnd   / (60 * 60));
+        $HEnd   = min($HEnd, 24);
+
         $Hours = [];
         for ($i=$HStart; $i < $HEnd; $i++) { 
             $Hours[] = [
