@@ -11,10 +11,11 @@ angular.module('PanelControl_PanelControlCtrl', [])
 			Fecha: angular.copy(Ctrl.Hoy),
 		};
 		Ctrl.EstadosUsuario = {
-			'Activo': 	{ Color: '#01a727' }, 
-			'Baño': 	{ Color: '#d66702' },
-			'Brake': 	{ Color: '#bb069a' },
-			'Almuerzo': { Color: '#bd9804' },
+			'Activo': 	 { Color: '#01a727' }, 
+			'Baño': 	 { Color: '#d66702' },
+			'Brake': 	 { Color: '#bb069a' },
+			'Almuerzo':  { Color: '#bd9804' },
+			'Validando': { Color: '#b3ff00' },
 		};
 
 		Ctrl.getControl = () => {

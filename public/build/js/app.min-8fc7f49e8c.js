@@ -411,6 +411,44 @@ angular.module('BottomSheetCtrl', [])
 		}
 	}
 ]);
+angular.module('ConfirmCtrl', [])
+.controller(   'ConfirmCtrl', ['$scope', 'Config', '$mdDialog', 
+	function ($scope, Config, $mdDialog) {
+
+		var Ctrl = $scope;
+
+		Ctrl.Config = Config;
+
+		Ctrl.Cancel = function(){
+			$mdDialog.cancel();
+		}
+
+		Ctrl.Send = function(val){
+			$mdDialog.hide(val);
+		}
+		
+	}
+
+]);
+angular.module('ConfirmDeleteCtrl', [])
+.controller(   'ConfirmDeleteCtrl', ['$scope', 'Config', '$mdDialog', 
+	function ($scope, Config, $mdDialog) {
+
+		var Ctrl = $scope;
+
+		Ctrl.Config = Config;
+
+		Ctrl.Cancel = function(){
+			$mdDialog.hide(false);
+		}
+
+		Ctrl.Delete = function(){
+			$mdDialog.hide(true);
+		}
+		
+	}
+
+]);
 angular.module('CRUDDialogCtrl', [])
 .controller('CRUDDialogCtrl', ['$rootScope', '$scope', '$mdDialog', 'ops', 'config', 'columns', 'Obj', 'rows', 
 	function($rootScope, $scope, $mdDialog, ops, config, columns, Obj, rows) {
@@ -484,44 +522,6 @@ angular.module('CRUDDialogCtrl', [])
 		//Ctrl.fields = angular.copy
 
 	}
-]);
-angular.module('ConfirmCtrl', [])
-.controller(   'ConfirmCtrl', ['$scope', 'Config', '$mdDialog', 
-	function ($scope, Config, $mdDialog) {
-
-		var Ctrl = $scope;
-
-		Ctrl.Config = Config;
-
-		Ctrl.Cancel = function(){
-			$mdDialog.cancel();
-		}
-
-		Ctrl.Send = function(val){
-			$mdDialog.hide(val);
-		}
-		
-	}
-
-]);
-angular.module('ConfirmDeleteCtrl', [])
-.controller(   'ConfirmDeleteCtrl', ['$scope', 'Config', '$mdDialog', 
-	function ($scope, Config, $mdDialog) {
-
-		var Ctrl = $scope;
-
-		Ctrl.Config = Config;
-
-		Ctrl.Cancel = function(){
-			$mdDialog.hide(false);
-		}
-
-		Ctrl.Delete = function(){
-			$mdDialog.hide(true);
-		}
-		
-	}
-
 ]);
 angular.module('Core__ImageEditor_DialogCtrl', [])
 .controller(   'Core__ImageEditor_DialogCtrl', ['$scope', '$rootScope', '$mdDialog', '$mdToast', '$timeout', '$http', 'Upload', 'Config', 
@@ -780,6 +780,36 @@ angular.module('ListSelectorCtrl', [])
 
 	}
 ]);
+angular.module('PanelControl_PanelControlCtrl', [])
+.controller('PanelControl_PanelControlCtrl', ['$scope', '$rootScope', '$http', '$mdDialog',
+	function($scope, $rootScope, $http, $mdDialog) {
+
+		console.info('PanelControl_PanelControlCtrl');
+		var Ctrl = $scope;
+		var Rs = $rootScope;
+
+		Ctrl.Hoy = moment().toDate();
+		Ctrl.Filters = {
+			Fecha: angular.copy(Ctrl.Hoy),
+		};
+		Ctrl.EstadosUsuario = {
+			'Activo': 	{ Color: '#01a727' }, 
+			'Baño': 	{ Color: '#d66702' },
+			'Brake': 	{ Color: '#bb069a' },
+			'Almuerzo': { Color: '#bd9804' },
+		};
+
+		Ctrl.getControl = () => {
+			Rs.http('api/Validaciones/control', { Filters: Ctrl.Filters }).then((r) => {
+				Ctrl.ValidacionesControl = r[0];
+				Ctrl.Hours = r[1];
+				Ctrl.minStart = Ctrl.Hours[0]['hour'] * 60;
+			});
+		};
+		Ctrl.getControl();
+		
+	}
+]);
 angular.module('PQRS__PQRSCtrl', [])
 .controller('PQRS__PQRSCtrl', ['$scope', '$rootScope', 
 	function($scope, $rootScope) {
@@ -897,36 +927,6 @@ angular.module('PQRS__PQRSCtrl', [])
 		//Ctrl.getRows(true);
 
 
-	}
-]);
-angular.module('PanelControl_PanelControlCtrl', [])
-.controller('PanelControl_PanelControlCtrl', ['$scope', '$rootScope', '$http', '$mdDialog',
-	function($scope, $rootScope, $http, $mdDialog) {
-
-		console.info('PanelControl_PanelControlCtrl');
-		var Ctrl = $scope;
-		var Rs = $rootScope;
-
-		Ctrl.Hoy = moment().toDate();
-		Ctrl.Filters = {
-			Fecha: angular.copy(Ctrl.Hoy),
-		};
-		Ctrl.EstadosUsuario = {
-			'Activo': 	{ Color: '#01a727' }, 
-			'Baño': 	{ Color: '#d66702' },
-			'Brake': 	{ Color: '#bb069a' },
-			'Almuerzo': { Color: '#bd9804' },
-		};
-
-		Ctrl.getControl = () => {
-			Rs.http('api/Validaciones/control', { Filters: Ctrl.Filters }).then((r) => {
-				Ctrl.ValidacionesControl = r[0];
-				Ctrl.Hours = r[1];
-				Ctrl.minStart = Ctrl.Hours[0]['hour'] * 60;
-			});
-		};
-		Ctrl.getControl();
-		
 	}
 ]);
 angular.module('Validaciones__ValidacionDiagCtrl', [])
