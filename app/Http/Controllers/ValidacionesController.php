@@ -155,7 +155,7 @@ class ValidacionesController extends Controller
     public function postControl()
     {
         $F = request('Filters');
-        $F['Fecha'] = Carbon::parse($F['Fecha'])->subDays(1)->format('Y-m-d');
+        $F['Fecha'] = Carbon::parse($F['Fecha'])->format('Y-m-d');
 
         $Usuarios = Usuario::all()->keyBy('Id');
         $Tonight = Carbon::parse($F['Fecha']);
