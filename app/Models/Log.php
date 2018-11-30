@@ -37,6 +37,16 @@ class Log extends Model
 		return $q->whereIn('valor1', $valores);
 	}
 
+	public function scopeValor2($q, $valores)
+	{
+		return $q->whereIn('valor2', $valores);
+	}
+
+	public function scopeValor3($q, $valores)
+	{
+		return $q->whereIn('valor3', $valores);
+	}
+
 	public function getDurAttribute()
 	{
 		return $this->updated_at->diffInSeconds($this->created_at);

@@ -14,6 +14,7 @@ use App\Models\ValidacionesComentario;
 use Crypt;
 use App\Functions\CRUD;
 use Carbon\Carbon;
+use App\Models\Log;
 
 class ValidacionesController extends Controller
 {
@@ -113,15 +114,24 @@ class ValidacionesController extends Controller
         $Usuario = $this->authenticate();
         $Hoy = Carbon::today()->toDateString();
         $s = [
-            'Validaciones' => 0,
-            'Segs_Activo' => 0
+            'ValidacionesAvanzadas' => 0,
+            'ValidacionesDevueltas' => 0,
+            'Validaciones' => 0
         ];
 
         $s['Validaciones'] = Validacion::usuario($Usuario['Id'])->entre([$Hoy, $Hoy])->count();
-        $EstadosActivos = \App\Models\Log::usuario($Usuario['Id'])->entre([$Hoy, $Hoy])->llaves(['USUARIO.ESTADO'])->valor1(['Activo','Validando'])->get();
+
+        $EstadosActivos = Log::usuario($Usuario['Id'])->entre([$Hoy, $Hoy])->llaves(['USUARIO.ESTADO'])->valor1(['Activo','Validando'])->get();  
+
+        foreach ($EstadosActivos as $EA) {
+            if($EA['valor1'] == 'Activo'){
+                if($EA['valor3'] == 'Avanzada') $s['ValidacionesAvanzadas'] ++;
+                if($EA['valor3'] == 'Devuelta') $s['ValidacionesDevueltas'] ++;
+            };
+        };
 
 
-        
+        $s['Validaciones'] = $s['ValidacionesAvanzadas'] + $s['ValidacionesDevueltas'];
         $s['Segs_Activo'] = $EstadosActivos->sum('dur');
 
         //Añadir el último Activo
@@ -131,7 +141,6 @@ class ValidacionesController extends Controller
         };
 
 
-
         $s['Horas_Activo'] = $s['Segs_Activo'] / (60 * 60);
 
         $s['LastActivo']     = $LastActivo;
@@ -139,5 +148,70 @@ class ValidacionesController extends Controller
 
         return $s;
     }
+
+
+
+
+    public function postControl()
+    {
+        $F = request('Filters');
+        $F['Fecha'] = Carbon::parse($F['Fecha'])->subDays(1)->format('Y-m-d');
+
+        $Usuarios = Usuario::all()->keyBy('Id');
+        $Tonight = Carbon::parse($F['Fecha']);
+        $HStart  =  7 * 60 * 60;
+        $HEnd    = 21 * 60 * 60;
+
+        $Control = Log::entre([$F['Fecha'], $F['Fecha']])->llaves(['USUARIO.ESTADO'])->whereNotIn('valor1', ['_OFFLINE'])->get()
+                    ->groupBy('usuario_id')->transform(function($ES) use ($Usuarios, $Tonight, &$HStart, &$HEnd){
+                        $usuario_id = $ES[0]['usuario_id'];
+                        $U = [
+                            'usuario_id' => $usuario_id,
+                            'Usuario_Nombre' => $Usuarios[$usuario_id]['Nombre'],
+                            'Usuario_Email' => $Usuarios[$usuario_id]['Email'],
+                            'EstadoAct' => null,
+                            'Estados' => $ES->transform(function($E) use ($Tonight, &$HStart, &$HEnd){
+
+                                $r = [
+                                    'id'         => $E['id'],
+                                    'created_at' => $E['created_at']->format('Y-m-d h:ma'),
+                                    'Hora'       => $E['created_at']->format('h:ma'),
+                                    'Hora_Fin'   => $E['updated_at']->format('h:ma'),
+                                    'Estado'     => $E['valor1'],
+                                    'pos'        => $E->created_at->diffInSeconds($Tonight),
+                                    'dur'        => $E['dur'],
+                                ];
+
+                                $r['dur_min'] = max(floor($r['dur'] / 60),1);
+                                $r['pos_min'] = floor($r['pos'] / 60);
+
+                                $HStart = min($HStart, $r['pos']);
+                                $HEnd   = max($HEnd,   ($r['pos'] + $r['dur']));
+
+                                return $r;
+                            }),
+                        ];
+
+                        return $U;
+
+                    })->values();
+
+        $HStart = floor($HStart / (60 * 60));
+        $HEnd   = ceil( $HEnd   / (60 * 60));
+        $Hours = [];
+        for ($i=$HStart; $i < $HEnd; $i++) { 
+            $Hours[] = [
+                'hour' => $i,
+                'hour_12' => ($i > 12) ? ($i-12) : $i,
+                'ampm' => ($i > 11) ? 'pm' : 'am',
+            ];
+        };
+
+        return [ $Control, $Hours ];
+
+    }
+
+
+
 
 }

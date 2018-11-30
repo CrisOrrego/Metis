@@ -46,5 +46,6 @@ angular.module('App', [
 		'Configuracion__PerfilesCtrl',
 	'Validaciones__ValidacionesCtrl',
 		'Validaciones__ValidacionDiagCtrl',
+	'PanelControl_PanelControlCtrl',
 	
 ]);

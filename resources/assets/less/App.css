@@ -820,6 +820,9 @@ button {
 .abs.right {
   right: 10px;
 }
+.inline-block {
+  display: inline-block;
+}
 .right {
   float: right;
 }
@@ -8180,6 +8183,10 @@ button {
 }
 .seam-bottom {
   box-shadow: 0 10px 10px -10px rgba(0, 0, 0, 0.2) !important;
+  z-index: 1;
+}
+.seam-right {
+  box-shadow: 10px 0 10px -10px rgba(0, 0, 0, 0.2) !important;
   z-index: 1;
 }
 .seam-inner-top {

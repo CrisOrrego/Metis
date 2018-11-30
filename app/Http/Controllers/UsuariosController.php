@@ -88,7 +88,7 @@ class UsuariosController extends Controller
             
             //dd($Perfil);
             //return $kS == 'InformeBI';
-            return $Perfil[$S->id] > 0;
+            return (array_key_exists($S->id, $Perfil) AND $Perfil[$S->id] > 0);
         });
 
 

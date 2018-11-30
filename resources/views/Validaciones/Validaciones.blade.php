@@ -97,10 +97,15 @@
 				<div class="h50"></div>
 			</md-table-container>
 
-			<div layout layout-align="center" class="padding-5 text-10pt">
+			<div layout class="padding-5 text-10pt">
+				<span flex></span>
 				<div class="info-bit">{{ UsuarioStatus.Validaciones }} Validaciones</div>
 				<div class="info-bit">{{ UsuarioStatus.Segs_Activo | segstodate:'HH:mm' }} Tiempo Activo</div>
 				<div class="info-bit">{{ UsuarioStatus.Validaciones / (UsuarioStatus.Horas_Activo) | number:1 }} Validaciones/Hora</div>
+				<span flex></span>
+				<div class="info-bit">{{ UsuarioStatus.ValidacionesAvanzadas }}A/{{ UsuarioStatus.ValidacionesDevueltas }}D
+					<md-tooltip md-direction="top">{{ UsuarioStatus.ValidacionesAvanzadas }} Avanzadas / {{ UsuarioStatus.ValidacionesDevueltas }} Devueltas</md-tooltip>
+				</div>
 			</div>
 
 			<div layout layout-align="center center" flex ng-if="ValidacionesCRUD.ops.loading" class="margin-top-20">
