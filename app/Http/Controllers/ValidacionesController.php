@@ -225,11 +225,15 @@ class ValidacionesController extends Controller
 
         $Logs = Log::entre([$F['Fecha'], $F['Fecha']])->llaves(['USUARIO.ESTADO'])->valor1(['Activo'])->valor3(['Avanzada','Devuelta'])->get()->keyBy('valor2');
 
-        $I = [];
+        $I = [
+            [''],
+        ];
 
         foreach ($Logs as $L) {
-            # code...
-        }
+            
+        };
+
+        return $I;
     }
 
 
