@@ -237,10 +237,11 @@ class ValidacionesController extends Controller
 	public function postInfTiemposAtencion()
 	{
 		$F = request('Filters');
-		$F['Fecha'] = Carbon::parse($F['Fecha'])->format('Y-m-d');
+		$F['Desde'] = Carbon::parse($F['Desde'])->format('Y-m-d');
+		$F['Hasta'] = Carbon::parse($F['Hasta'])->format('Y-m-d');
 		$Usuarios = Usuario::all()->keyBy('Id');
 
-		$Logs = Log::entre([$F['Fecha'], $F['Fecha']])->llaves(['USUARIO.ESTADO'])->valor1(['Activo'])->valor3(['Avanzada','Devuelta'])->orderBy('created_at', 'ASC')->get()->groupBy('valor2');
+		$Logs = Log::entre([$F['Desde'], $F['Hasta']])->llaves(['USUARIO.ESTADO'])->valor1(['Activo'])->valor3(['Avanzada','Devuelta'])->orderBy('created_at', 'ASC')->get()->groupBy('valor2');
 		$I = [];
 
 		foreach ($Logs as $kV => $L) {

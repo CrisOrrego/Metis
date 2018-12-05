@@ -1,4 +1,4 @@
-<md-dialog md-theme="{{Config.Theme}}" style="min-width: 400px" aria-label="Basic Dialog">
+<md-dialog md-theme="{{Config.Theme}}" flex={{Config.Flex}} nstyle="min-height: 97vh;" aria-label="Basic Dialog">
 	<md-toolbar class="md-short md-Transparent">
 		<div class="md-toolbar-tools">
 			<h2>{{Config.Title}}</h2>
@@ -9,16 +9,51 @@
 		</div>
 	</md-toolbar>
 
-	<form name="Basic_Dialog_Form" ng-submit="SendData()">
-	<md-dialog-content flex >
-		<div class="md-dialog-content padding" layout="column">
+	<form name="Basic_Dialog_Form" ng-submit="SendData()" flex layout=column>
+	<md-dialog-content flex class="overflow-y">
+		<div class="md-dialog-content padding" layout layout-wrap>
 
-			<md-input-container layout ng-repeat="Field in Config.Fields">
+			<md-input-container layout ng-repeat="Field in Config.Fields" class="" ng-class="Field.Class" flex=100 flex-gt-xs="{{ Field.flex ? Field.flex : 100 }}">
 				<label>{{ Field.Nombre }}</label>
-				<input ng-model="Field.Value" md-autofocus="$first" ng-required="Field.Required" minlength="{{Field.MinLen}}" maxlength="{{Field.MaxLen}}" ng-class="Field.Class">
+				
+				<input ng-model="Field.Value" ng-required="Field.Required" class="w100p" 
+					minlength="{{Field.MinLen}}" maxlength="{{Field.MaxLen}}"  ng-if="!Field.Type || Field.Type == 'string'">
+
+				<input ng-model="Field.Value" ng-required="Field.Required" class="w100p" 
+					min="{{Field.Min}}" max="{{Field.Max}}" ng-if="Field.Type == 'number'" type="number">
+
+
+				<md-datepicker ng-model="Field.Value" ng-if="Field.Type == 'date'" ng-required="Field.Required" class="w100p"></md-datepicker>
+
+				<md-select ng-model="Field.Value" ng-if="Field.Type == 'list'" ng-required="Field.Required" class="w100p">
+					<md-option ng-repeat="Op in Field.List" ng-value="Op[Field.Item_Val]" >{{ Op[Field.Item_Show] }}</md-option>
+				</md-select>
+
+				<md-select ng-model="Field.Value" ng-if="Field.Type == 'list_group'" ng-required="Field.Required" class="w100p">
+					<md-optgroup ng-repeat="Gr in Field.List" label="{{ Gr[Field.Group_Show] }}">
+						<md-option ng-repeat="Op in Gr[Field.Childs]" ng-value="Op[Field.Item_Val]" >{{ Op[Field.Item_Show] }}</md-option>
+					</md-optgroup>
+				</md-select>
+
+				<md-autocomplete class="no-margin w100p fix_autocomplete" 
+					ng-required="Field.Required" 
+					md-search-text="Field.opts.searchText"
+					md-items="item in Field.opts.itemsFn(Field.opts.searchText)"
+					md-selected-item-change="selectItem(Field, item)"
+					md-item-text="item[Field.opts.itemText]"
+					md-min-length="Field.opts.minLength" md-delay="Field.opts.delay"
+					md-require-match placeholder="Buscar..."
+					ng-if="Field.Type == 'autocomplete'">
+						<md-item-template>
+							<span md-highlight-text="Field.opts.searchText" md-highlight-flags="^i">{{ Field.opts.itemDisplay(item) }}</span>
+						</md-item-template>
+						<md-not-found>"{{Field.opts.searchText}}" no encontrado.</md-not-found>
+				</md-autocomplete>
+
 			</md-input-container>
 
 		</div>
+
 	</md-dialog-content>
 
 	<md-dialog-actions layout>

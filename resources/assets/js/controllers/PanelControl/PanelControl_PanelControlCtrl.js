@@ -31,9 +31,22 @@ angular.module('PanelControl_PanelControlCtrl', [])
 
 		//Informes
 		Ctrl.infTiemposAtencion = () => {
-			Rs.http('api/Validaciones/inf-tiempos-atencion', { Filters: Ctrl.Filters }).then((d) => {
-				Rs.download(d, 'Informe Tiempos de Atención.csv');
+			var Today = moment().toDate();
+			Rs.BasicDialog({
+				Title: 'Fechas',
+				Flex: 20,
+				Fields: [
+					{ Nombre: 'Desde',  Value: angular.copy(Today), Required: true, Type: 'date' },
+					{ Nombre: 'Hasta',  Value: angular.copy(Today), Required: true, Type: 'date' },
+				],
+				Confirm: { Text: 'Descargar' },
+			}).then((r) => {
+				Rs.http('api/Validaciones/inf-tiempos-atencion', { Filters: { Desde: r.Fields[0].Value, Hasta: r.Fields[1].Value } }).then((d) => {
+					Rs.download(d, 'Informe Tiempos de Atención.csv');
+				});
 			});
+
+			
 		};
 
 
