@@ -9,7 +9,15 @@
 			<md-tooltip>Recargar</md-tooltip>
 			<md-icon md-font-icon="fa-refresh fa-lg"></md-icon>
 		</md-button>
-
+		<md-menu>
+		 <!-- Trigger element is a md-button with an icon -->
+		 <md-button ng-click="$mdMenu.open($event)" class="md-icon-button" aria-label="Open menu">
+		   <md-icon md-svg-icon="md-more-v"></md-icon>
+		 </md-button>
+		 <md-menu-content>
+		   <md-menu-item><md-button ng-click="infTiemposAtencion()">Informe de Tiempos de Atención</md-button></md-menu-item>
+		 </md-menu-content>
+		</md-menu>
 	</div>
 
 	<div flex layout class="overflow-y darkScroll">
