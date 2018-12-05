@@ -249,7 +249,7 @@ class ValidacionesController extends Controller
 
 			$Ingreso    = Carbon::parse($Val->Ingreso);
 			$Inicio     = Carbon::parse($Val->Inicio);
-			$Fin        = Carbon::parse($Val->Fin);
+			$Fin        = $DaLog->updated_at;
 
 			$minsTramite = $Fin->diffInMinutes($Ingreso);
 
