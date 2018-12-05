@@ -32,7 +32,7 @@ angular.module('PanelControl_PanelControlCtrl', [])
 		//Informes
 		Ctrl.infTiemposAtencion = () => {
 			Rs.http('api/Validaciones/inf-tiempos-atencion', { Filters: Ctrl.Filters }).then((d) => {
-				Rs.download(d, 'Informe Tiempos de Atención');
+				Rs.download(d, 'Informe Tiempos de Atención.csv');
 			});
 		};
 

@@ -9,8 +9,7 @@
 			<md-tooltip>Recargar</md-tooltip>
 			<md-icon md-font-icon="fa-refresh fa-lg"></md-icon>
 		</md-button>
-		<md-menu>
-		 <!-- Trigger element is a md-button with an icon -->
+		<md-menu md-position-mode="target-right target">
 		 <md-button ng-click="$mdMenu.open($event)" class="md-icon-button" aria-label="Open menu">
 		   <md-icon md-svg-icon="md-more-v"></md-icon>
 		 </md-button>
@@ -20,7 +19,7 @@
 		</md-menu>
 	</div>
 
-	<div flex layout class="overflow-y darkScroll">
+	<div flex layout class="overflow-y hasScroll">
 		<div layout=column class="seam-right" flex=50>
 			<div class="h20"></div>
 			<div ng-repeat="U in ValidacionesControl" layout class="h30 padding-left">
@@ -30,7 +29,7 @@
 		</div>
 
 		<div flex layout=column class="padding-bottom-5">
-			<div layout=column class="overflow-x darkScroll" style="min-height: 100%">
+			<div layout=column class="overflow-x hasScroll" style="min-height: 100%">
 				<div layout>
 					<div class="h20 w120 text-10pt text-clear hour_block" ng-repeat="H in Hours">{{ H.hour_12 + H.ampm }}</div>
 				</div>
