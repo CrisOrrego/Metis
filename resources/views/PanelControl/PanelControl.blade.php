@@ -15,6 +15,7 @@
 		 </md-button>
 		 <md-menu-content>
 		   <md-menu-item><md-button ng-click="infTiemposAtencion()">Informe de Tiempos de Atención</md-button></md-menu-item>
+		   <md-menu-item><md-button ng-click="infEstadoValidaciones()">Informe de Estado de Validaciones</md-button></md-menu-item>
 		 </md-menu-content>
 		</md-menu>
 	</div>

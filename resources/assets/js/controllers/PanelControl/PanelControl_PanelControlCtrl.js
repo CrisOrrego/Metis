@@ -6,6 +6,12 @@ angular.module('PanelControl_PanelControlCtrl', [])
 		var Ctrl = $scope;
 		var Rs = $rootScope;
 
+		var Horas = [];
+		var Minutos = [];
+		for (var i = 0; i <= 23; i++) { Horas.push(i); };
+		for (var i = 0; i <= 59; i++) { Minutos.push(i); };
+
+
 		Ctrl.Hoy = moment().toDate();
 		Ctrl.Filters = {
 			Fecha: angular.copy(Ctrl.Hoy),
@@ -45,9 +51,32 @@ angular.module('PanelControl_PanelControlCtrl', [])
 					Rs.download(d, 'Informe Tiempos de Atención.csv');
 				});
 			});
-
-			
 		};
+
+
+		Ctrl.infEstadoValidaciones = () => {
+			
+			var Today = moment().toDate();
+			var Hora = moment().hour();
+			var Minuto = moment().minute();
+
+			Rs.BasicDialog({
+				Title: 'Fecha y Hora',
+				Flex: 20,
+				Fields: [
+					{ Nombre: 'Fecha',  Value: angular.copy(Today), Required: true, Type: 'date' },
+					{ Nombre: 'Hora',   flex: 50, Value: Hora,   Required: true, Type: 'select', List: Horas },
+					{ Nombre: 'Minuto', flex: 50, Value: Minuto, Required: true, Type: 'select', List: Minutos },
+				],
+				Confirm: { Text: 'Descargar' },
+			}).then((r) => {
+				Rs.http('api/Validaciones/inf-estado-validaciones', { Filters: { Fecha: r.Fields[0].Value, Hora: r.Fields[1].Value, Minuto: r.Fields[2].Value } }).then((d) => {
+					Rs.download(d, 'Informe de Estado de Validaciones.csv');
+				});
+			});
+		};
+
+
 
 
 	}

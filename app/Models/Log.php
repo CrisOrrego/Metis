@@ -19,10 +19,10 @@ class Log extends Model
 		return $q->where('usuario_id', $usuario_id);
 	}
 
-	public function scopeEntre($q, $Fechas)
+	public function scopeEntre($q, $Fechas, $HoraLim = "23:59:59")
 	{
 		$FIni = substr($Fechas[0], 0, 10);
-		$FFin = substr($Fechas[1], 0, 10)." 23:59:59";
+		$FFin = substr($Fechas[1], 0, 10)." ".$HoraLim;
 
 		return $q->where('created_at', '>=', $FIni)->where('created_at', '<=', $FFin);
 	}

@@ -25,6 +25,10 @@
 
 				<md-datepicker ng-model="Field.Value" ng-if="Field.Type == 'date'" ng-required="Field.Required" class="w100p"></md-datepicker>
 
+				<md-select ng-model="Field.Value" ng-if="Field.Type == 'select'" ng-required="Field.Required" class="w100p">
+					<md-option ng-repeat="Op in Field.List" ng-value="Op" >{{ Op }}</md-option>
+				</md-select>
+
 				<md-select ng-model="Field.Value" ng-if="Field.Type == 'list'" ng-required="Field.Required" class="w100p">
 					<md-option ng-repeat="Op in Field.List" ng-value="Op[Field.Item_Val]" >{{ Op[Field.Item_Show] }}</md-option>
 				</md-select>

@@ -264,15 +264,54 @@ class ValidacionesController extends Controller
 				'Ingreso' 		=>  $Ingreso->format('Y-m-d h:ia'),
 				'Inicio' 		=>  $Inicio->format('Y-m-d h:ia'),
 				'Finalización' 	=>  $Fin->format('Y-m-d h:ia'),
+				'Hora Finalización' => $Fin->format('h:ia'),
+				'Mins. Trámite' =>  $minsTramite,
+			];
+		};
+
+		return $this->downloadCsv($I);
+	}
+
+	public function postInfEstadoValidaciones()
+	{
+		$F = request('Filters');
+		$F['Fecha'] = Carbon::parse($F['Fecha'])->format('Y-m-d');
+		$Usuarios = Usuario::all()->keyBy('Id');
+
+		$HoraMin = Carbon::now()->setTime($F['Hora'], $F['Minuto'], 59)->format('H:i:s');
+
+		$Logs = Log::entre([$F['Fecha'], $F['Fecha']], $HoraMin)->llaves(['USUARIO.ESTADO'])->valor1(['Activo'])->whereNotNull('valor3')
+				->orderBy('created_at', 'DESC')->get()->groupBy('valor2');
+		$I = [];
+
+		foreach ($Logs as $kV => $L) {
+			$Val = Validacion::find($kV);
+			$DaLog = $L[0];
+
+			$Ingreso    = Carbon::parse($Val->Ingreso);
+			$Inicio     = Carbon::parse($Val->Inicio);
+			$Fin        = $DaLog->updated_at;
+
+			$minsTramite = $Fin->diffInMinutes($Ingreso);
+
+			$I[] = [
+				'uid' 			=>  $kV,
+				'Número' 		=>  $Val['Numero'],
+				'Usuario'		=>  $Usuarios[$DaLog->usuario_id]->Nombre,
+				'Cliente' 		=>  $Val['TipoDoc'].':'.$Val['Doc'],
+				'Estado' 		=>  $DaLog['valor3'],
+				'Causal'        =>  $Val->causal['Causal'],
+				'Ingreso' 		=>  $Ingreso->format('Y-m-d h:ia'),
+				'Inicio' 		=>  $Inicio->format('Y-m-d h:ia'),
+				'Cambio Estado' =>  $Fin->format('Y-m-d h:ia'),
+				'Hora Cambio Estado' => $Fin->format('h:ia'),
 				'Mins. Trámite' =>  $minsTramite,
 			];
 		};
 
 		return $this->downloadCsv($I);
 
-		
 	}
-
 
 
 
