@@ -222,11 +222,17 @@ class ValidacionesController extends Controller
 		$fd = fopen('php://temp/maxmemory:5243000', 'w');
 		if($fd === FALSE) { die('Failed to open temporary file'); }
 
-		fputcsv($fd, array_keys($Data[0]));
-		foreach($Data as $D) {
-		    fputcsv($fd, $D);
+		if(empty($Data)){
+			fputcsv($fd, 'Sin Datos');
+		}else{
+			fputcsv($fd, array_keys($Data[0]));
+			foreach($Data as $D) {
+			    fputcsv($fd, $D);
+			};
+			rewind($fd);
 		};
-		rewind($fd);
+
+
 		$csv = stream_get_contents($fd);
 		fclose($fd); // releases the memory (or tempfile)
 
